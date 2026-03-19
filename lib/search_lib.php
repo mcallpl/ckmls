@@ -87,8 +87,9 @@ function buildFilters(array $geo, float $radiusMiles, array $statuses, int $clos
         $filters[] = "CloseDate ge $cutoff";
     }
 
-    // Geographic scope: zip for tight radius, city for wider
-    if ($radiusMiles <= 1.0 && !empty($geo['postcode'])) {
+    // Geographic scope: use ZIP for small radii, city for wider
+    // The true radius filtering happens server-side after results come back
+    if ($radiusMiles <= 2.0 && !empty($geo['postcode'])) {
         $filters[] = "PostalCode eq '" . addslashes($geo['postcode']) . "'";
     } elseif (!empty($geo['city'])) {
         $filters[] = "City eq '" . addslashes($geo['city']) . "'";
@@ -105,7 +106,7 @@ function buildFilters(array $geo, float $radiusMiles, array $statuses, int $clos
 /**
  * Run the main property search
  */
-function searchNearAddress(array $geo, float $radiusMiles, array $statuses, int $closedDays, int $skip = 0, int $top = 50): array {
+function searchNearAddress(array $geo, float $radiusMiles, array $statuses, int $closedDays, int $skip = 0, int $top = 200): array {
     $filters = buildFilters($geo, $radiusMiles, $statuses, $closedDays);
     if (empty($filters)) throw new Exception("Could not build a geographic filter from that address.");
 

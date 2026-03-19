@@ -79,13 +79,17 @@ try {
     $geo = geocodeAddress($fullAddress);
     if (!$geo) jsonError("Could not locate \"{$fullAddress}\" — try adding city and state.");
 
-    // 2. Search MLS
+    // 2. Search MLS — fetch a broad set, then filter by true radius
     $searchResult = searchNearAddress($geo, $radiusMiles, $statuses, $closedDays, $skip);
     $properties   = $searchResult['properties'];
-    $totalCount   = $searchResult['totalCount'];
 
-    // 3. Distances
+    // 3. Distances + true radius filter
     attachDistances($properties, $geo['lat'], $geo['lng']);
+    $allCount = count($properties);
+    $properties = array_values(array_filter($properties, function($p) use ($radiusMiles) {
+        return isset($p['_distance']) && $p['_distance'] <= $radiusMiles;
+    }));
+    $totalCount = count($properties);
 
     // 4. Photos — proxied through photo.php so auth token is sent server-side
     $listingKeys = array_values(array_filter(array_column($properties, 'ListingKey')));
@@ -135,24 +139,11 @@ try {
         ? 'ZIP ' . $geo['postcode']
         : ($geo['city'] ?? $geo['postcode'] ?? 'this area');
 
-    // 7. If we hit the cap and still don't have a total count, fetch it
-    $propCount = count($properties);
-    if ($propCount >= 50 && !$totalCount) {
-        $totalCount = getTotalCount($geo, $radiusMiles, $statuses, $closedDays);
-    }
-    $hitCap = $propCount >= 50;
-
-    // 8. Build count text — embedded directly into geoScope and radiusLabel
-    //    so even old cached JS displays it (POST responses are never cached)
-    if ($totalCount && $totalCount > $propCount) {
-        $countHtml   = '<strong>' . number_format($totalCount) . '</strong> homes match your criteria &middot; showing <strong>' . number_format($propCount) . '</strong>';
-        $geoScope   .= ' — ' . number_format($totalCount) . ' homes found, showing nearest ' . $propCount;
-    } elseif ($hitCap) {
-        $countHtml   = 'More than <strong>50</strong> homes match your criteria &middot; showing <strong>' . number_format($propCount) . '</strong>';
-        $geoScope   .= ' — 50+ homes found, showing nearest ' . $propCount;
-    } else {
-        $countHtml   = '<strong>' . number_format($propCount) . '</strong> home' . ($propCount !== 1 ? 's' : '') . ' found';
-    }
+    // 7. Count — now accurate since properties are filtered by true radius
+    $propCount  = count($properties);
+    $totalCount = $propCount;
+    $hitCap     = false;
+    $countHtml  = '<strong>' . number_format($propCount) . '</strong> home' . ($propCount !== 1 ? 's' : '') . ' within ' . ($radiusLabels[(string)$radiusMiles] ?? "{$radiusMiles} mi");
 
     echo json_encode([
         'success'         => true,
