@@ -513,6 +513,12 @@ input::placeholder { color: var(--mut2); }
 .cma-label { display: flex; align-items: center; gap: 8px; font-family: 'Syne', sans-serif; font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--text); margin-bottom: 6px; }
 .cma-hint  { font-size: .75rem; color: var(--muted); margin-bottom: 8px; line-height: 1.5; }
 .cma-divider { border: none; border-top: 1px solid var(--bord); margin: 20px 0; }
+.cma-limit-warning {
+    margin-top: 18px; padding: 14px 18px; border-radius: 10px;
+    background: rgba(245,200,66,.08); border: 1px solid rgba(245,200,66,.3);
+    font-size: .82rem; line-height: 1.55; color: var(--text);
+}
+.cma-limit-warning strong { color: #f5c842; }
 
 .cma-input, .cma-textarea {
     width: 100%; padding: 11px 14px;

@@ -122,6 +122,13 @@ function buildStep1Html(count) {
                           placeholder="e.g. Great school district, competitive market, client relocating from out of state..."></textarea>
             </div>
         </div>
+        ${count > 30 ? `
+            <div class="cma-limit-warning">
+                <strong>Heads up:</strong> You currently have <strong>${count}</strong> homes selected.
+                Only the first <strong>30</strong> (based on your current sort order) will be included in the email.
+                Consider narrowing your filters or adjusting the search radius to be more selective.
+            </div>` : ''}
+        </div>
         <div class="cma-modal-footer">
             <button class="cma-btn-cancel" id="cmaCancelBtn">Cancel</button>
             <button class="cma-btn-preview" id="cmaNextBtn">
@@ -157,7 +164,7 @@ async function goToStep2() {
     document.getElementById('cmaNextBtn').disabled           = true;
 
     try {
-        const included  = cmaCompList.filter(p => p._cmaIncluded);
+        const included  = cmaCompList.filter(p => p._cmaIncluded).slice(0, 30);
         const slimProps = included.map(p => ({
             StandardStatus: p.StandardStatus, ListPrice: p.ListPrice, ClosePrice: p.ClosePrice,
             CloseDate: p.CloseDate, StreetNumber: p.StreetNumber, StreetName: p.StreetName,
@@ -305,7 +312,7 @@ function wireStep2Events() {
 
 // ── Send Final ───────────────────────────────────────────────────
 async function sendFinalCma() {
-    const included = cmaCompList.filter(p => p._cmaIncluded);
+    const included = cmaCompList.filter(p => p._cmaIncluded).slice(0, 30);
     if (!included.length) { alert('Please include at least one comp.'); return; }
 
     const editorEl       = document.getElementById('cmaNarrativeEditor');
