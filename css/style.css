@@ -251,10 +251,10 @@ input::placeholder { color: var(--mut2); }
 .c-cap-note { display: inline-block; margin-top: 4px; font-size: .76rem; font-style: italic; opacity: .8; }
 
 /* ── 8. MAP ──────────────────────────────────────────────── */
-#map-container { border-radius: var(--radius); overflow: hidden; border: 1px solid var(--bord); margin-bottom: 24px; box-shadow: var(--shadow-md); display: none; }
+#map-container { position: relative; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--bord); margin-bottom: 24px; box-shadow: var(--shadow-md); display: none; }
 #map-container.visible { display: block; }
 #map { width: 100%; height: 420px; }
-#map-draw-controls { display: flex; gap: 6px; margin: 10px; }
+#map-draw-controls { position: absolute; top: 10px; right: 10px; z-index: 10; display: flex; gap: 6px; }
 .map-ctrl-btn {
     padding: 8px 14px; background: rgba(26,27,46,.9); border: 1.5px solid rgba(91,127,255,.3);
     border-radius: 100px; font-family: 'Syne', sans-serif; font-size: .75rem; font-weight: 600;

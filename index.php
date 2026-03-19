@@ -138,7 +138,13 @@ header('Cache-Control: no-cache, must-revalidate');
 </div><!-- /search-card -->
 
 <!-- ── MAP ──────────────────────────────────────────────── -->
-<div id="map-container"><div id="map"></div></div>
+<div id="map-container">
+    <div id="map"></div>
+    <div id="map-draw-controls">
+        <button id="btn-draw-poly" class="map-ctrl-btn" type="button">Draw Area</button>
+        <button id="btn-clear-poly" class="map-ctrl-btn" type="button" style="display:none">Clear Area</button>
+    </div>
+</div>
 
 <!-- ── RESULTS ──────────────────────────────────────────── -->
 <div id="results-wrap"></div>

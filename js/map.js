@@ -229,39 +229,22 @@ function onMapClick(e) {
     addVertex(e.latLng);
 }
 
-// ── Map controls ───────────────────────────────────────────
-function addMapControls() {
-    // Check if already added
-    if (document.getElementById('map-draw-controls')) return;
+// ── Map controls (HTML buttons in index.php, bind events once) ──
+function bindMapControls() {
+    var drawBtn = document.getElementById('btn-draw-poly');
+    var clearBtn = document.getElementById('btn-clear-poly');
+    if (!drawBtn || drawBtn._bound) return;
+    drawBtn._bound = true;
 
-    var div = document.createElement('div');
-    div.id = 'map-draw-controls';
-
-    var drawBtn = document.createElement('button');
-    drawBtn.id = 'btn-draw-poly';
-    drawBtn.className = 'map-ctrl-btn';
-    drawBtn.title = 'Draw a custom area to filter';
-    drawBtn.textContent = 'Draw Area';
     drawBtn.addEventListener('click', function(e) {
         e.stopPropagation();
         if (drawingActive) return;
         startDrawing();
     });
-
-    var clearBtn = document.createElement('button');
-    clearBtn.id = 'btn-clear-poly';
-    clearBtn.className = 'map-ctrl-btn';
-    clearBtn.title = 'Clear polygon and return to radius';
-    clearBtn.textContent = 'Clear Area';
-    clearBtn.style.display = 'none';
     clearBtn.addEventListener('click', function(e) {
         e.stopPropagation();
         clearPolygon();
     });
-
-    div.appendChild(drawBtn);
-    div.appendChild(clearBtn);
-    googleMap.controls[google.maps.ControlPosition.TOP_RIGHT].push(div);
 }
 
 // ══════════════════════════════════════════════════════════
@@ -306,14 +289,14 @@ window.initMap = function(geocoded, properties) {
 
         // Map click handler for polygon drawing
         googleMap.addListener('click', onMapClick);
-
-        // Add draw controls
-        addMapControls();
     } else {
         googleMap.setCenter(center);
         googleMap.setZoom(14);
         clearMapMarkers();
     }
+
+    // Bind draw controls (HTML buttons, idempotent)
+    bindMapControls();
 
     // Reset draw button text
     var drawBtn = document.getElementById('btn-draw-poly');
