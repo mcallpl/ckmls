@@ -105,18 +105,25 @@ function buildFilters(array $geo, float $radiusMiles, array $statuses, int $clos
 /**
  * Run the main property search
  */
-function searchNearAddress(array $geo, float $radiusMiles, array $statuses, int $closedDays): array {
+function searchNearAddress(array $geo, float $radiusMiles, array $statuses, int $closedDays, int $skip = 0, int $top = 50): array {
     $filters = buildFilters($geo, $radiusMiles, $statuses, $closedDays);
     if (empty($filters)) throw new Exception("Could not build a geographic filter from that address.");
 
-    $result = trestleGet('Property', [
+    $params = [
         '$filter'  => implode(' and ', $filters),
         '$select'  => getSelectFields(),
-        '$top'     => 50,
+        '$top'     => $top,
         '$orderby' => 'ModificationTimestamp desc',
-    ]);
+        '$count'   => 'true',
+    ];
+    if ($skip > 0) $params['$skip'] = $skip;
 
-    return $result['value'] ?? [];
+    $result = trestleGet('Property', $params);
+
+    return [
+        'properties' => $result['value'] ?? [],
+        'totalCount' => $result['@odata.count'] ?? null,
+    ];
 }
 
 /**
