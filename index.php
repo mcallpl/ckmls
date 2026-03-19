@@ -169,16 +169,8 @@ header('Cache-Control: no-cache, must-revalidate');
         if (typeof appData === 'undefined' || !appData) return;
 
         var showing = appData.properties ? appData.properties.length : 0;
-        var total   = appData.totalCount;
-        var hitCap  = appData.hitCap;
-        var cap     = appData.displayCap || 50;
-
-        if (total && total > showing) {
-            el.innerHTML = 'Showing <strong>' + showing.toLocaleString() + '</strong> of <strong>' + total.toLocaleString() + '</strong> listings';
-        } else if (hitCap) {
-            el.innerHTML = 'Showing <strong>' + showing.toLocaleString() + '</strong> of <strong>' + cap + '+</strong> listings';
-        } else {
-            el.innerHTML = '<strong>' + showing.toLocaleString() + '</strong> listing' + (showing !== 1 ? 's' : '');
+        {
+            el.innerHTML = '<strong>' + showing.toLocaleString() + '</strong> home' + (showing !== 1 ? 's' : '');
         }
         el.dataset.fixed = '1';
     });

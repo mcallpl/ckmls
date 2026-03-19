@@ -115,11 +115,6 @@ function renderResults(data) {
                 Showing <strong>${esc(data.statusLabel)}${data.hasClosed ? ', last ' + data.closedDays + ' days' : ''}</strong>
                 listings in <strong>${esc(data.geoScope)}</strong>
                 &nbsp;(${esc(data.radiusLabel)} radius)
-                ${data.totalCount && data.totalCount > data.properties.length
-                    ? `<br><span class="c-cap-note">${data.totalCount.toLocaleString()} homes match your criteria — displaying the ${data.properties.length.toLocaleString()} nearest to you</span>`
-                    : data.hitCap
-                    ? `<br><span class="c-cap-note">More than ${data.properties.length.toLocaleString()} homes match your criteria — displaying the ${data.properties.length.toLocaleString()} nearest to you</span>`
-                    : ''}
             </div>
         </div>`;
     wrap.appendChild(banner);

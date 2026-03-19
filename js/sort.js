@@ -65,18 +65,7 @@ function buildSortBar(count, totalCount) {
 
 function updateResultCount(el, showing, total) {
     if (!el) return;
-    const hitCap  = appData && appData.hitCap;
-    const capSize = (appData && appData.displayCap) || 50;
-
-    if (total && total > showing) {
-        // API returned exact count
-        el.innerHTML = `<strong>${total.toLocaleString()}</strong> home${total !== 1 ? 's' : ''} match your criteria &middot; showing <strong>${showing.toLocaleString()}</strong>`;
-    } else if (hitCap) {
-        // Hit the display cap but no exact count from API
-        el.innerHTML = `More than <strong>${capSize}</strong> homes match your criteria &middot; showing <strong>${showing.toLocaleString()}</strong>`;
-    } else {
-        el.innerHTML = `<strong>${showing.toLocaleString()}</strong> home${showing !== 1 ? 's' : ''} found`;
-    }
+    el.innerHTML = `<strong>${showing.toLocaleString()}</strong> home${showing !== 1 ? 's' : ''}`;
 }
 
 function getSortedProperties(props, sortKey) {
