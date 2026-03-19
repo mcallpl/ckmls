@@ -153,6 +153,29 @@ header('Cache-Control: no-cache, must-revalidate');
 <script src="js/app.js?v=<?=$cacheBust?>"></script>
 <script src="js/map.js?v=<?=$cacheBust?>"></script>
 <script>
+/* Override result count display — inline so it can never be cached stale */
+(function() {
+    const _orig = window.updateResultCount;
+    window.updateResultCount = function(el, showing, total) {
+        if (!el) return;
+        /* Use server-provided HTML if available */
+        if (typeof appData !== 'undefined' && appData && appData.countHtml) {
+            el.innerHTML = appData.countHtml;
+            return;
+        }
+        var hitCap  = (typeof appData !== 'undefined' && appData && appData.hitCap);
+        var capSize = (typeof appData !== 'undefined' && appData && appData.displayCap) || 50;
+        if (total && total > showing) {
+            el.innerHTML = '<strong>' + total.toLocaleString() + '</strong> homes match your criteria &middot; showing <strong>' + showing.toLocaleString() + '</strong>';
+        } else if (hitCap) {
+            el.innerHTML = 'More than <strong>' + capSize + '</strong> homes match your criteria &middot; showing <strong>' + showing.toLocaleString() + '</strong>';
+        } else {
+            el.innerHTML = '<strong>' + showing.toLocaleString() + '</strong> home' + (showing !== 1 ? 's' : '') + ' found';
+        }
+    };
+})();
+</script>
+<script>
 /* =============================================================
    Inline UI logic — pills, selects, address clear button
    app.js handles: loader, fetch, render, sorting, cards

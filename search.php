@@ -135,6 +135,17 @@ try {
         ? 'ZIP ' . $geo['postcode']
         : ($geo['city'] ?? $geo['postcode'] ?? 'this area');
 
+    // 7. Build count HTML server-side (immune to JS caching)
+    $propCount = count($properties);
+    $hitCap    = $propCount >= 50;
+    if ($totalCount && $totalCount > $propCount) {
+        $countHtml = '<strong>' . number_format($totalCount) . '</strong> homes match your criteria &middot; showing <strong>' . number_format($propCount) . '</strong>';
+    } elseif ($hitCap) {
+        $countHtml = 'More than <strong>50</strong> homes match your criteria &middot; showing <strong>' . number_format($propCount) . '</strong>';
+    } else {
+        $countHtml = '<strong>' . number_format($propCount) . '</strong> home' . ($propCount !== 1 ? 's' : '') . ' found';
+    }
+
     echo json_encode([
         'success'         => true,
         'geocoded'        => $geo,
@@ -147,7 +158,8 @@ try {
         'properties'      => $properties,
         'totalCount'      => $totalCount,
         'displayCap'      => 50,
-        'hitCap'          => count($properties) >= 50,
+        'hitCap'          => $hitCap,
+        'countHtml'       => $countHtml,
         'publicRecords'   => $publicRecords,
         'searchedAddress' => $fullAddress,
     ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
