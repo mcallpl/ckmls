@@ -3,7 +3,14 @@
 function trestleGet(string $endpoint, array $params = []): array {
     $token = getAccessToken();
     $url   = TRESTLE_BASE_URL . '/trestle/odata/' . $endpoint;
-    if (!empty($params)) $url .= '?' . http_build_query($params);
+    if (!empty($params)) {
+        // Build query string preserving literal $ in OData param names
+        $parts = [];
+        foreach ($params as $k => $v) {
+            $parts[] = $k . '=' . rawurlencode((string)$v);
+        }
+        $url .= '?' . implode('&', $parts);
+    }
 
     $ch = curl_init($url);
     curl_setopt_array($ch, [

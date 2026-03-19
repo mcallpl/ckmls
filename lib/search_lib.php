@@ -127,6 +127,23 @@ function searchNearAddress(array $geo, float $radiusMiles, array $statuses, int 
 }
 
 /**
+ * Lightweight count-only query (no property data returned)
+ */
+function getTotalCount(array $geo, float $radiusMiles, array $statuses, int $closedDays): ?int {
+    $filters = buildFilters($geo, $radiusMiles, $statuses, $closedDays);
+    if (empty($filters)) return null;
+
+    $result = trestleGet('Property', [
+        '$filter' => implode(' and ', $filters),
+        '$top'    => 0,
+        '$count'  => 'true',
+        '$select' => 'ListingKey',
+    ]);
+
+    return $result['@odata.count'] ?? null;
+}
+
+/**
  * Search all statuses for a specific address (listing history)
  */
 function getAddressHistory(string $streetNumber, string $streetName, string $city, string $state): array {

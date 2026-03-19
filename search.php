@@ -135,9 +135,12 @@ try {
         ? 'ZIP ' . $geo['postcode']
         : ($geo['city'] ?? $geo['postcode'] ?? 'this area');
 
-    // 7. Build count HTML server-side (immune to JS caching)
+    // 7. If we hit the cap and still don't have a total count, fetch it
     $propCount = count($properties);
-    $hitCap    = $propCount >= 50;
+    if ($propCount >= 50 && !$totalCount) {
+        $totalCount = getTotalCount($geo, $radiusMiles, $statuses, $closedDays);
+    }
+    $hitCap = $propCount >= 50;
     if ($totalCount && $totalCount > $propCount) {
         $countHtml = '<strong>' . number_format($totalCount) . '</strong> homes match your criteria &middot; showing <strong>' . number_format($propCount) . '</strong>';
     } elseif ($hitCap) {
