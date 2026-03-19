@@ -87,17 +87,27 @@ function buildFilters(array $geo, float $radiusMiles, array $statuses, int $clos
         $filters[] = "CloseDate ge $cutoff";
     }
 
-    // Geographic scope: use ZIP for small radii, city for wider
-    // The true radius filtering happens server-side after results come back
-    if ($radiusMiles <= 2.0 && !empty($geo['postcode'])) {
+    // Geographic scope: bounding box from lat/lng + radius
+    // Adds ~20% padding so edge properties aren't missed; true radius
+    // filtering by haversine happens server-side after results return
+    $lat = (float)($geo['lat'] ?? 0);
+    $lng = (float)($geo['lng'] ?? 0);
+    if ($lat && $lng) {
+        $pad       = $radiusMiles * 1.2; // 20% padding for bounding box
+        $latDelta  = $pad / 69.0;        // ~69 miles per degree latitude
+        $lngDelta  = $pad / (69.0 * cos(deg2rad($lat))); // adjusted for longitude
+        $filters[] = "Latitude ge "  . round($lat - $latDelta, 6);
+        $filters[] = "Latitude le "  . round($lat + $latDelta, 6);
+        $filters[] = "Longitude ge " . round($lng - $lngDelta, 6);
+        $filters[] = "Longitude le " . round($lng + $lngDelta, 6);
+    } elseif (!empty($geo['postcode'])) {
+        // Fallback if no coordinates
         $filters[] = "PostalCode eq '" . addslashes($geo['postcode']) . "'";
     } elseif (!empty($geo['city'])) {
         $filters[] = "City eq '" . addslashes($geo['city']) . "'";
         if (!empty($geo['state'])) {
             $filters[] = "StateOrProvince eq '" . addslashes($geo['state']) . "'";
         }
-    } elseif (!empty($geo['postcode'])) {
-        $filters[] = "PostalCode eq '" . addslashes($geo['postcode']) . "'";
     }
 
     return $filters;

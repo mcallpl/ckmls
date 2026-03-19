@@ -135,9 +135,7 @@ try {
 
     // 6. Scope label
     $radiusLabels = ['0.0625'=>'1/16 mile','0.125'=>'⅛ mile','0.25'=>'¼ mile','0.5'=>'½ mile','1.0'=>'1 mile','2.0'=>'2 miles','5.0'=>'5 miles','10.0'=>'10 miles'];
-    $geoScope     = ($radiusMiles <= 1.0 && !empty($geo['postcode']))
-        ? 'ZIP ' . $geo['postcode']
-        : ($geo['city'] ?? $geo['postcode'] ?? 'this area');
+    $geoScope     = $geo['city'] ?? $geo['postcode'] ?? 'this area';
 
     // 7. Count — now accurate since properties are filtered by true radius
     $propCount  = count($properties);
