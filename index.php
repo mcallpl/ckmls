@@ -141,13 +141,13 @@
 
 </div><!-- /container -->
 
-<script src="js/sort.js"></script>
-<script src="js/filters.js"></script>
-<script src="js/cards.js"></script>
-<script src="js/records.js"></script>
-<script src="js/cma.js"></script>
-<script src="js/app.js"></script>
-<script src="js/map.js"></script>
+<script src="js/sort.js?v=20260319"></script>
+<script src="js/filters.js?v=20260319"></script>
+<script src="js/cards.js?v=20260319"></script>
+<script src="js/records.js?v=20260319"></script>
+<script src="js/cma.js?v=20260319"></script>
+<script src="js/app.js?v=20260319"></script>
+<script src="js/map.js?v=20260319"></script>
 <script>
 /* =============================================================
    Inline UI logic — pills, selects, address clear button
