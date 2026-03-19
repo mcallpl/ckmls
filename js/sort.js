@@ -5,7 +5,7 @@
 let currentSort    = 'newest';
 let currentSortDir = 'desc';
 
-function buildSortBar(count) {
+function buildSortBar(count, totalCount) {
     const bar = document.createElement('div');
     bar.className = 'sort-bar';
     bar.id = 'sort-bar';
@@ -57,9 +57,19 @@ function buildSortBar(count) {
 
     const countEl = document.createElement('span');
     countEl.className = 'result-count';
-    countEl.innerHTML = `<strong>${count}</strong> listing${count !== 1 ? 's' : ''}`;
+    countEl.id = 'result-count';
+    updateResultCount(countEl, count, totalCount);
     bar.appendChild(countEl);
     return bar;
+}
+
+function updateResultCount(el, showing, total) {
+    if (!el) return;
+    if (total && total > showing) {
+        el.innerHTML = `<strong>${total.toLocaleString()}</strong> home${total !== 1 ? 's' : ''} match your criteria &middot; displaying the first <strong>${showing.toLocaleString()}</strong>`;
+    } else {
+        el.innerHTML = `<strong>${showing.toLocaleString()}</strong> home${showing !== 1 ? 's' : ''} found`;
+    }
 }
 
 function getSortedProperties(props, sortKey) {

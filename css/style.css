@@ -248,6 +248,7 @@ input::placeholder { color: var(--mut2); }
 .c-addr { color: var(--heading); font-weight: 500; margin-bottom: 3px; }
 .c-scope { color: var(--muted); font-size: .81rem; }
 .c-scope strong { color: var(--acc2); }
+.c-cap-note { display: inline-block; margin-top: 4px; font-size: .76rem; font-style: italic; opacity: .8; }
 
 /* ── 8. MAP ──────────────────────────────────────────────── */
 #map-container { border-radius: var(--radius); overflow: hidden; border: 1px solid var(--bord); margin-bottom: 24px; box-shadow: var(--shadow-md); display: none; }

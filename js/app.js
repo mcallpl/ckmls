@@ -28,6 +28,8 @@ const LOADER_MESSAGES = [
 
 // ── Global state ─────────────────────────────────────────────────
 let appData        = null;
+let appTotalCount  = null;
+let loadingMore    = false;
 let loaderInterval = null;
 let loaderMsgIndex = 0;
 window.mapMarkers  = [];
@@ -84,6 +86,7 @@ document.getElementById('searchForm').addEventListener('submit', async (e) => {
         if (!data.success) { showError(data.error || 'An unknown error occurred.'); return; }
 
         appData = data;
+        appTotalCount = data.totalCount || data.properties.length;
         appData.searchedAddress = addr.value.trim();
         renderResults(data);
         initMap(data.geocoded, data.properties);
@@ -112,6 +115,9 @@ function renderResults(data) {
                 Showing <strong>${esc(data.statusLabel)}${data.hasClosed ? ', last ' + data.closedDays + ' days' : ''}</strong>
                 listings in <strong>${esc(data.geoScope)}</strong>
                 &nbsp;(${esc(data.radiusLabel)} radius)
+                ${data.totalCount && data.totalCount > data.properties.length
+                    ? `<br><span class="c-cap-note">${data.totalCount.toLocaleString()} homes match your search — showing the nearest ${data.properties.length.toLocaleString()}</span>`
+                    : ''}
             </div>
         </div>`;
     wrap.appendChild(banner);
@@ -123,7 +129,7 @@ function renderResults(data) {
         resetFilters();
         wrap.appendChild(buildFilterBar(data.properties));
         wrap.appendChild(buildCmaButton());
-        wrap.appendChild(buildSortBar(data.properties.length));
+        wrap.appendChild(buildSortBar(data.properties.length, appTotalCount));
     }
 
     const cardsWrap = document.createElement('div');
