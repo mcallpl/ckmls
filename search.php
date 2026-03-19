@@ -141,12 +141,17 @@ try {
         $totalCount = getTotalCount($geo, $radiusMiles, $statuses, $closedDays);
     }
     $hitCap = $propCount >= 50;
+
+    // 8. Build count text — embedded directly into geoScope and radiusLabel
+    //    so even old cached JS displays it (POST responses are never cached)
     if ($totalCount && $totalCount > $propCount) {
-        $countHtml = '<strong>' . number_format($totalCount) . '</strong> homes match your criteria &middot; showing <strong>' . number_format($propCount) . '</strong>';
+        $countHtml   = '<strong>' . number_format($totalCount) . '</strong> homes match your criteria &middot; showing <strong>' . number_format($propCount) . '</strong>';
+        $geoScope   .= ' — ' . number_format($totalCount) . ' homes found, showing nearest ' . $propCount;
     } elseif ($hitCap) {
-        $countHtml = 'More than <strong>50</strong> homes match your criteria &middot; showing <strong>' . number_format($propCount) . '</strong>';
+        $countHtml   = 'More than <strong>50</strong> homes match your criteria &middot; showing <strong>' . number_format($propCount) . '</strong>';
+        $geoScope   .= ' — 50+ homes found, showing nearest ' . $propCount;
     } else {
-        $countHtml = '<strong>' . number_format($propCount) . '</strong> home' . ($propCount !== 1 ? 's' : '') . ' found';
+        $countHtml   = '<strong>' . number_format($propCount) . '</strong> home' . ($propCount !== 1 ? 's' : '') . ' found';
     }
 
     echo json_encode([
