@@ -231,7 +231,7 @@ rSel.addEventListener('change', function() {
     syncForm();
     // Auto-submit search when radius changes (if a search was already done)
     if (typeof appData !== 'undefined' && appData && addrInput.value.trim()) {
-        document.getElementById('searchForm').dispatchEvent(new Event('submit', { cancelable: true }));
+        document.getElementById('searchForm').requestSubmit();
     }
 });
 toggleClosedDays();

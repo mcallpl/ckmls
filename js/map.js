@@ -2,10 +2,11 @@
    MLS Property Search — Google Maps Integration
    ============================================================ */
 
-let googleMap      = null;
-let infoWindow     = null;
+let googleMap       = null;
+let infoWindow      = null;
 let propertyMarkers = [];
 let centerMarkerObj = null;
+let radiusCircle    = null;
 
 /**
  * Called by app.js after search results arrive.
@@ -65,6 +66,22 @@ window.initMap = function(geocoded, properties) {
                 <div style="font-size:.8rem;color:#555;line-height:1.4">${geocoded.display_name}</div>
             </div>`);
         infoWindow.open(googleMap, centerMarkerObj);
+    });
+
+    // ── Radius circle ──
+    if (radiusCircle) radiusCircle.setMap(null);
+    var radiusSel = document.getElementById('rSel');
+    var radiusMiles = radiusSel ? parseFloat(radiusSel.value) : 1.0;
+    radiusCircle = new google.maps.Circle({
+        map: googleMap,
+        center: center,
+        radius: radiusMiles * 1609.34,  // convert miles to meters
+        fillColor: '#5b7fff',
+        fillOpacity: 0.08,
+        strokeColor: '#5b7fff',
+        strokeOpacity: 0.5,
+        strokeWeight: 2,
+        clickable: false,
     });
 
     // ── Property listing markers ──
@@ -294,6 +311,7 @@ function clearMapMarkers() {
     propertyMarkers.forEach(m => m.setMap(null));
     propertyMarkers = [];
     if (centerMarkerObj) { centerMarkerObj.setMap(null); centerMarkerObj = null; }
+    if (radiusCircle) { radiusCircle.setMap(null); radiusCircle = null; }
     if (infoWindow) infoWindow.close();
 }
 
