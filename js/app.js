@@ -1,5 +1,5 @@
 /* ============================================================
-   app.js — State, loader, form submit, result rendering
+   app.js — State, loader, form submit, result rendering (v2)
    Depends on: filters.js, sort.js, cards.js, records.js, cma.js
    ============================================================ */
 

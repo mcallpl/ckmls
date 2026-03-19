@@ -1,5 +1,5 @@
 /* ============================================================
-   sort.js — Sort bar and sort logic
+   sort.js — Sort bar, sort logic, and result count display
    ============================================================ */
 
 let currentSort    = 'newest';
