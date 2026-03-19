@@ -1,11 +1,15 @@
-<?php require_once __DIR__ . '/config.php'; ?>
+<?php
+require_once __DIR__ . '/config.php';
+$cacheBust = filemtime(__DIR__ . '/js/app.js');
+header('Cache-Control: no-cache, must-revalidate');
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MLS Property Search</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=<?=$cacheBust?>">
 </head>
 <body>
 
@@ -141,13 +145,13 @@
 
 </div><!-- /container -->
 
-<script src="js/sort.js?v=20260319"></script>
-<script src="js/filters.js?v=20260319"></script>
-<script src="js/cards.js?v=20260319"></script>
-<script src="js/records.js?v=20260319"></script>
-<script src="js/cma.js?v=20260319"></script>
-<script src="js/app.js?v=20260319"></script>
-<script src="js/map.js?v=20260319"></script>
+<script src="js/sort.js?v=<?=$cacheBust?>"></script>
+<script src="js/filters.js?v=<?=$cacheBust?>"></script>
+<script src="js/cards.js?v=<?=$cacheBust?>"></script>
+<script src="js/records.js?v=<?=$cacheBust?>"></script>
+<script src="js/cma.js?v=<?=$cacheBust?>"></script>
+<script src="js/app.js?v=<?=$cacheBust?>"></script>
+<script src="js/map.js?v=<?=$cacheBust?>"></script>
 <script>
 /* =============================================================
    Inline UI logic — pills, selects, address clear button
