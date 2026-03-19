@@ -19,6 +19,7 @@ let vertexMarkers   = [];
 let mapOverlay      = null;       // for pixel projection
 let radiusDragTimer = null;
 let serverRadiusMiles = 1.0;      // radius used in the last server query
+let pendingDragRadius = null;     // if set, initMap uses this instead of dropdown
 
 // ── Spatial filter entry point ─────────────────────────────
 function filterByCurrentSpatialMode() {
@@ -235,24 +236,32 @@ function addMapControls() {
 
     var div = document.createElement('div');
     div.id = 'map-draw-controls';
-    div.innerHTML =
-        '<button id="btn-draw-poly" class="map-ctrl-btn" title="Draw a custom area to filter">Draw Area</button>' +
-        '<button id="btn-clear-poly" class="map-ctrl-btn" style="display:none" title="Clear polygon and return to radius">Clear Area</button>';
 
+    var drawBtn = document.createElement('button');
+    drawBtn.id = 'btn-draw-poly';
+    drawBtn.className = 'map-ctrl-btn';
+    drawBtn.title = 'Draw a custom area to filter';
+    drawBtn.textContent = 'Draw Area';
+    drawBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (drawingActive) return;
+        startDrawing();
+    });
+
+    var clearBtn = document.createElement('button');
+    clearBtn.id = 'btn-clear-poly';
+    clearBtn.className = 'map-ctrl-btn';
+    clearBtn.title = 'Clear polygon and return to radius';
+    clearBtn.textContent = 'Clear Area';
+    clearBtn.style.display = 'none';
+    clearBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        clearPolygon();
+    });
+
+    div.appendChild(drawBtn);
+    div.appendChild(clearBtn);
     googleMap.controls[google.maps.ControlPosition.TOP_RIGHT].push(div);
-
-    // Use setTimeout to let Google Maps render the controls
-    setTimeout(function() {
-        var drawBtn = document.getElementById('btn-draw-poly');
-        var clearBtn = document.getElementById('btn-clear-poly');
-        if (drawBtn) drawBtn.addEventListener('click', function() {
-            if (drawingActive) return; // already drawing
-            startDrawing();
-        });
-        if (clearBtn) clearBtn.addEventListener('click', function() {
-            clearPolygon();
-        });
-    }, 100);
 }
 
 // ══════════════════════════════════════════════════════════
@@ -341,7 +350,13 @@ window.initMap = function(geocoded, properties) {
     // ── Radius circle (editable) ──
     if (radiusCircle) radiusCircle.setMap(null);
     var radiusSel = document.getElementById('rSel');
-    var radiusMiles = radiusSel ? parseFloat(radiusSel.value) : 1.0;
+    var radiusMiles;
+    if (pendingDragRadius) {
+        radiusMiles = pendingDragRadius;
+        pendingDragRadius = null;
+    } else {
+        radiusMiles = radiusSel ? parseFloat(radiusSel.value) : 1.0;
+    }
     serverRadiusMiles = radiusMiles;
 
     radiusCircle = new google.maps.Circle({
@@ -373,6 +388,7 @@ window.initMap = function(geocoded, properties) {
         radiusDragTimer = setTimeout(function() {
             // If user dragged larger than server data, re-fetch
             if (newMiles > serverRadiusMiles * 1.1) {
+                pendingDragRadius = newMiles;
                 var hR = document.getElementById('hR');
                 if (hR) hR.value = newMiles.toFixed(4);
                 var form = document.getElementById('searchForm');
