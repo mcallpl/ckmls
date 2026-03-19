@@ -146,6 +146,8 @@ try {
         'closedDays'      => $closedDays,
         'properties'      => $properties,
         'totalCount'      => $totalCount,
+        'displayCap'      => 50,
+        'hitCap'          => count($properties) >= 50,
         'publicRecords'   => $publicRecords,
         'searchedAddress' => $fullAddress,
     ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
