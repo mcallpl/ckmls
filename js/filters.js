@@ -207,9 +207,8 @@ function applyFiltersAndRender() {
     const filtered = applyFilters(appData.properties);
     const sorted   = getSortedProperties(filtered, currentSort);
 
-    const countSpan = document.querySelector('.result-count');
-    if (countSpan) countSpan.innerHTML =
-        `<strong>${filtered.length}</strong> listing${filtered.length !== 1 ? 's' : ''}`;
+    const countEl = document.getElementById('result-count');
+    if (countEl) updateResultCount(countEl, filtered.length, appTotalCount);
 
     if (typeof window.updateMapMarkers === 'function') {
         window.updateMapMarkers(sorted);
@@ -219,6 +218,10 @@ function applyFiltersAndRender() {
 
 // ── Filter logic ─────────────────────────────────────────────────
 function applyFilters(props) {
+    // Spatial filter (dragged radius or polygon)
+    if (window.spatialFilter) {
+        props = props.filter(window.spatialFilter);
+    }
     return props.filter(p => {
         const price    = p.ListPrice || p.ClosePrice || 0;
         const beds     = p.BedroomsTotal        || 0;

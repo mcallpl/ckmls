@@ -254,6 +254,15 @@ input::placeholder { color: var(--mut2); }
 #map-container { border-radius: var(--radius); overflow: hidden; border: 1px solid var(--bord); margin-bottom: 24px; box-shadow: var(--shadow-md); display: none; }
 #map-container.visible { display: block; }
 #map { width: 100%; height: 420px; }
+#map-draw-controls { display: flex; gap: 6px; margin: 10px; }
+.map-ctrl-btn {
+    padding: 8px 14px; background: rgba(26,27,46,.9); border: 1.5px solid rgba(91,127,255,.3);
+    border-radius: 100px; font-family: 'Syne', sans-serif; font-size: .75rem; font-weight: 600;
+    color: #c8cee0; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.3); transition: all .18s;
+    backdrop-filter: blur(8px); letter-spacing: .03em;
+}
+.map-ctrl-btn:hover { background: rgba(91,127,255,.2); border-color: #5b7fff; color: #fff; }
+.map-ctrl-btn.active { background: rgba(176,127,255,.2); border-color: #b07fff; color: #b07fff; }
 
 /* ── 9. SORT BAR ─────────────────────────────────────────── */
 .sort-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; animation: fadeSlideIn .3s ease; }

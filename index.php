@@ -228,8 +228,10 @@ pills.forEach(cb => {
 
 cdSel.addEventListener('change', syncForm);
 rSel.addEventListener('change', function() {
+    if (typeof clearPolygon === 'function' && typeof spatialMode !== 'undefined' && spatialMode === 'polygon') {
+        clearPolygon();
+    }
     syncForm();
-    // Auto-submit search when radius changes (if a search was already done)
     if (typeof appData !== 'undefined' && appData && addrInput.value.trim()) {
         document.getElementById('searchForm').requestSubmit();
     }
@@ -278,7 +280,7 @@ function initGoogleMaps() {
 </script>
 
 <script
-    src="https://maps.googleapis.com/maps/api/js?key=<?= GOOGLE_MAPS_API_KEY ?>&callback=initGoogleMaps"
+    src="https://maps.googleapis.com/maps/api/js?key=<?= GOOGLE_MAPS_API_KEY ?>&libraries=geometry&callback=initGoogleMaps"
     async defer>
 </script>
 
