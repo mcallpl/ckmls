@@ -3,14 +3,14 @@
    ============================================================ */
 
 let activeFilters = {
-    beds:'any', baths:'any', type:'any',
+    beds:'any', baths:'any', types:[],
     minPrice:'', maxPrice:'',
     minSqft:'', maxSqft:'',
     minLot:'', maxLot:'',
 };
 
 function resetFilters() {
-    activeFilters = { beds:'any', baths:'any', type:'any', minPrice:'', maxPrice:'', minSqft:'', maxSqft:'', minLot:'', maxLot:'' };
+    activeFilters = { beds:'any', baths:'any', types:[], minPrice:'', maxPrice:'', minSqft:'', maxSqft:'', minLot:'', maxLot:'' };
 }
 
 // ── Build filter bar ─────────────────────────────────────────────
@@ -24,7 +24,8 @@ function buildFilterBar(properties) {
     const minP   = prices.length ? Math.min(...prices) : 0;
     const maxP   = prices.length ? Math.max(...prices) : 0;
 
-    const builtInTypes = ['SFR','Single Family','Residential','Condo','Condominium','Townhouse','Townhome',
+    const builtInTypes = ['SFR','Single Family','SingleFamilyResidence','Single Family Residence',
+                          'Residential','Condo','Condominium','Townhouse','Townhome',
                           'Duplex','Multi-Family','ResidentialIncome'];
     const dynamicTypes = types.filter(t => !builtInTypes.some(b =>
         b.toLowerCase() === t.toLowerCase()
@@ -127,11 +128,35 @@ function buildFilterBar(properties) {
 
     // Pill clicks
     wrap.querySelectorAll('.filter-pills').forEach(group => {
+        const filterKey = group.dataset.filter;
         group.querySelectorAll('.fpill').forEach(btn => {
             btn.addEventListener('click', () => {
-                group.querySelectorAll('.fpill').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                activeFilters[group.dataset.filter] = btn.dataset.val;
+                if (filterKey === 'type') {
+                    // Multi-select for home types
+                    const val = btn.dataset.val;
+                    if (val === 'any') {
+                        // "Any" clears all selections
+                        group.querySelectorAll('.fpill').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        activeFilters.types = [];
+                    } else {
+                        // Toggle this type
+                        group.querySelector('[data-val="any"]').classList.remove('active');
+                        btn.classList.toggle('active');
+                        const selected = [...group.querySelectorAll('.fpill.active')]
+                            .map(b => b.dataset.val).filter(v => v !== 'any');
+                        activeFilters.types = selected;
+                        // If nothing selected, reactivate "Any"
+                        if (selected.length === 0) {
+                            group.querySelector('[data-val="any"]').classList.add('active');
+                        }
+                    }
+                } else {
+                    // Single-select for beds/baths
+                    group.querySelectorAll('.fpill').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    activeFilters[filterKey] = btn.dataset.val;
+                }
                 showResetIfNeeded();
                 applyFiltersAndRender();
             });
@@ -170,7 +195,7 @@ function showResetIfNeeded() {
     const btn = document.getElementById('filterReset');
     if (!btn) return;
     const dirty = activeFilters.beds !== 'any' || activeFilters.baths !== 'any' ||
-                  activeFilters.type !== 'any' || activeFilters.minPrice ||
+                  activeFilters.types.length > 0 || activeFilters.minPrice ||
                   activeFilters.maxPrice || activeFilters.minSqft || activeFilters.maxSqft ||
                   activeFilters.minLot || activeFilters.maxLot;
     btn.style.display = dirty ? 'inline-flex' : 'none';
@@ -217,10 +242,8 @@ function applyFilters(props) {
             else                 { if (baths !== parseInt(v)) return false; }
         }
 
-        // Type — strict two-field matching
-        if (activeFilters.type !== 'any') {
-            const sel = activeFilters.type.toLowerCase();
-
+        // Type — multi-select, strict two-field matching
+        if (activeFilters.types.length > 0) {
             // Non-SFR types that must be excluded from Single Family results
             const nonSfr = ['income','multi','duplex','triplex','quadruplex','apartment',
                              'commercial','lease','condo','condominium','mixed'];
@@ -228,8 +251,7 @@ function applyFilters(props) {
             const passRules = {
                 'sfr': () => {
                     if (nonSfr.some(x => pSubType.includes(x) || pType.includes(x))) return false;
-                    const ok = ['single family','singlefamily','sfr','single-family'];
-                    // PropertyType "Residential" alone is too broad — must have SFR SubType OR explicit SFR type
+                    const ok = ['single family','singlefamily','singlefamilyresidence','sfr','single-family'];
                     if (pSubType) return ok.some(x => pSubType.includes(x));
                     return ok.some(x => pType.includes(x)) || pType === 'residential';
                 },
@@ -247,12 +269,14 @@ function applyFilters(props) {
                 },
             };
 
-            if (passRules[sel]) {
-                if (!passRules[sel]()) return false;
-            } else {
-                const raw = sel.replace(/-/g,' ');
-                if (!pSubType.includes(raw) && !pType.includes(raw)) return false;
-            }
+            // Property must match at least one of the selected types
+            const matchesAny = activeFilters.types.some(sel => {
+                const s = sel.toLowerCase();
+                if (passRules[s]) return passRules[s]();
+                const raw = s.replace(/-/g,' ');
+                return pSubType.includes(raw) || pType.includes(raw);
+            });
+            if (!matchesAny) return false;
         }
 
         // Price
