@@ -1,0 +1,14 @@
+# OS
+.DS_Store
+
+# Secrets
+config.local.php
+
+# Deploy scripts (contain credentials)
+deploy*.sh
+
+# Claude Code
+.claude/
+
+# Editor
+.vscode/
