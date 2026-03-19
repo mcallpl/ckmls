@@ -561,6 +561,56 @@ input::placeholder { color: var(--mut2); }
 .cma-edit-btn { background: none; border: none; font-size: .72rem; color: var(--acc2); cursor: pointer; padding: 2px 6px; border-radius: 4px; transition: background .15s; margin-left: 4px; font-family: 'DM Sans', sans-serif; }
 .cma-edit-btn:hover { background: rgba(91,127,255,.1); }
 
+/* ── 13b. SELECTION BAR & CARD CHECKBOXES ────────────────── */
+.selection-bar {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 14px;
+    padding: 10px 16px; background: var(--surf); border: 1px solid var(--bord);
+    border-radius: var(--radius-sm); animation: fadeSlideIn .3s ease;
+}
+.select-all-label {
+    display: flex; align-items: center; gap: 8px; cursor: pointer;
+    font-family: 'Syne', sans-serif; font-size: .78rem; font-weight: 600;
+    color: var(--text); user-select: none; text-transform: uppercase;
+    letter-spacing: .06em;
+}
+.select-all-label input { display: none; }
+.select-all-box {
+    display: flex; align-items: center; justify-content: center;
+    width: 20px; height: 20px; flex-shrink: 0;
+    border: 2px solid var(--bord2); border-radius: 5px;
+    background: var(--surf2); transition: all .15s;
+}
+.select-all-label input:checked + .select-all-box {
+    background: var(--accent); border-color: var(--accent);
+}
+.select-all-label input:checked + .select-all-box::after {
+    content: '\2713'; color: #fff; font-size: .75rem; font-weight: 700;
+}
+.selected-count {
+    font-family: 'Syne', sans-serif; font-size: .72rem; font-weight: 700;
+    color: var(--acc2); letter-spacing: .06em; margin-left: auto;
+}
+
+/* Card checkbox (top-right of photo) */
+.card-cb-wrap {
+    position: absolute; top: 10px; right: 10px; z-index: 20;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.card-cb-wrap input { display: none; }
+.card-cb-box {
+    width: 26px; height: 26px; border-radius: 6px;
+    background: rgba(0,0,0,.55); border: 2px solid rgba(255,255,255,.5);
+    display: flex; align-items: center; justify-content: center;
+    transition: all .15s; backdrop-filter: blur(4px);
+}
+.card-cb-wrap:hover .card-cb-box { border-color: var(--accent); }
+.card-cb-wrap input:checked + .card-cb-box {
+    background: var(--accent); border-color: var(--accent);
+}
+.card-cb-wrap input:checked + .card-cb-box::after {
+    content: '\2713'; color: #fff; font-size: .8rem; font-weight: 700;
+}
+
 /* ── 14. ANIMATIONS & RESPONSIVE ─────────────────────────── */
 @keyframes fadeSlideIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
 @keyframes spin        { to { transform: rotate(360deg); } }

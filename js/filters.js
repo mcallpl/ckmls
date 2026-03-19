@@ -214,6 +214,7 @@ function applyFiltersAndRender() {
         window.updateMapMarkers(sorted);
     }
     renderCards(sorted);
+    updateSelectAllToggle();
 }
 
 // ── Filter logic ─────────────────────────────────────────────────

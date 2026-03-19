@@ -35,6 +35,71 @@ let loaderMsgIndex = 0;
 window.mapMarkers  = [];
 window.centerMarker= null;
 
+// ── Home selection state ─────────────────────────────────────────
+// Keys are a unique property identifier (ListingId or index-based fallback)
+const selectedHomes = new Set();
+
+function getPropKey(prop) {
+    return prop.ListingId || prop.ListingKey || (prop.StreetNumber + ' ' + prop.StreetName + ' ' + prop.PostalCode);
+}
+
+function selectAllVisible() {
+    const filtered = getSortedProperties(applyFilters(appData?.properties || []), currentSort);
+    filtered.forEach(p => selectedHomes.add(getPropKey(p)));
+    syncCheckboxes();
+    updateSelectAllToggle();
+}
+
+function unselectAll() {
+    selectedHomes.clear();
+    syncCheckboxes();
+    updateSelectAllToggle();
+}
+
+function syncCheckboxes() {
+    document.querySelectorAll('.card-select-cb').forEach(cb => {
+        cb.checked = selectedHomes.has(cb.dataset.propKey);
+    });
+    updateSelectedCount();
+}
+
+function updateSelectAllToggle() {
+    const toggle = document.getElementById('selectAllToggle');
+    if (!toggle) return;
+    const filtered = applyFilters(appData?.properties || []);
+    const allSelected = filtered.length > 0 && filtered.every(p => selectedHomes.has(getPropKey(p)));
+    toggle.checked = allSelected;
+    updateSelectedCount();
+}
+
+function updateSelectedCount() {
+    const el = document.getElementById('selected-count');
+    if (!el) return;
+    const count = selectedHomes.size;
+    el.textContent = count > 0 ? count + ' selected' : '';
+    el.style.display = count > 0 ? 'inline' : 'none';
+}
+
+function buildSelectionBar() {
+    const bar = document.createElement('div');
+    bar.className = 'selection-bar';
+    bar.id = 'selection-bar';
+    bar.innerHTML = `
+        <label class="select-all-label">
+            <input type="checkbox" id="selectAllToggle" checked>
+            <span class="select-all-box"></span>
+            <span>Select All</span>
+        </label>
+        <span class="selected-count" id="selected-count"></span>`;
+    bar.querySelector('#selectAllToggle').addEventListener('change', function() {
+        if (this.checked) selectAllVisible();
+        else unselectAll();
+    });
+    // Initialize count display
+    setTimeout(updateSelectedCount, 0);
+    return bar;
+}
+
 // ── Loader ───────────────────────────────────────────────────────
 const loader    = document.getElementById('loader');
 const loaderMsg = document.getElementById('loader-msg');
@@ -124,8 +189,13 @@ function renderResults(data) {
 
     if (data.properties.length > 0) {
         resetFilters();
+        // Select all homes by default
+        selectedHomes.clear();
+        data.properties.forEach(p => selectedHomes.add(getPropKey(p)));
+
         wrap.appendChild(buildFilterBar(data.properties));
         wrap.appendChild(buildCmaButton());
+        wrap.appendChild(buildSelectionBar());
         wrap.appendChild(buildSortBar(data.properties.length, appTotalCount));
     }
 

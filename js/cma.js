@@ -21,9 +21,10 @@ function openCmaModal() {
     document.getElementById('cmaModal')?.remove();
 
     const allFiltered = applyFilters(appData?.properties || []);
-    if (!allFiltered.length) { showError('No properties to include — adjust your filters first.'); return; }
+    const selected = allFiltered.filter(p => selectedHomes.has(getPropKey(p)));
+    if (!selected.length) { showError('No properties selected — check some listings first.'); return; }
 
-    cmaCompList = allFiltered.map((p, i) => ({ ...p, _cmaIncluded: true, _cmaIdx: i }));
+    cmaCompList = selected.map((p, i) => ({ ...p, _cmaIncluded: true, _cmaIdx: i }));
 
     // Inherit page sort
     const sortMap = { newest:'dist', price:'price_lo', distance:'dist', dom:'dist', sqft:'sqft', year:'dist' };

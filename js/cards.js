@@ -106,8 +106,31 @@ function buildCard(prop, idx) {
     const dom      = prop.DaysOnMarket ?? prop.CumulativeDaysOnMarket;
     const statusCls= 'b-' + (prop.StandardStatus || 'Unknown').replace(/ /g,'-');
 
+    // Checkbox
+    const propKey = getPropKey(prop);
+    const cbWrap = document.createElement('label');
+    cbWrap.className = 'card-cb-wrap';
+    cbWrap.addEventListener('click', e => e.stopPropagation());
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.className = 'card-select-cb';
+    cb.dataset.propKey = propKey;
+    cb.checked = selectedHomes.has(propKey);
+    cb.addEventListener('change', function(e) {
+        e.stopPropagation();
+        if (this.checked) selectedHomes.add(propKey);
+        else selectedHomes.delete(propKey);
+        updateSelectAllToggle();
+    });
+    const cbBox = document.createElement('span');
+    cbBox.className = 'card-cb-box';
+    cbWrap.appendChild(cb);
+    cbWrap.appendChild(cbBox);
+
     // Photo section (real DOM)
-    el.appendChild(buildPhotoSection(prop, idx));
+    const photoOuter = buildPhotoSection(prop, idx);
+    photoOuter.appendChild(cbWrap);
+    el.appendChild(photoOuter);
 
     // Card body (safe innerHTML — no photos here)
     const body = document.createElement('div');
