@@ -67,6 +67,8 @@ if (empty($statuses)) $statuses = ['Active'];
 // ── Other params ────────────────────────────────────────────────
 $closedDays  = (int)($_POST['closed_days'] ?? 90);
 $radiusMiles = (float)($_POST['radius']    ?? 1.0);
+$skip        = max(0, (int)($_POST['skip'] ?? 0));
+$isLoadMore  = $skip > 0;
 
 // For public records we also extract parts from the typed address
 // so the records lookup can use them
@@ -78,7 +80,9 @@ try {
     if (!$geo) jsonError("Could not locate \"{$fullAddress}\" — try adding city and state.");
 
     // 2. Search MLS
-    $properties = searchNearAddress($geo, $radiusMiles, $statuses, $closedDays);
+    $searchResult = searchNearAddress($geo, $radiusMiles, $statuses, $closedDays, $skip);
+    $properties   = $searchResult['properties'];
+    $totalCount   = $searchResult['totalCount'];
 
     // 3. Distances
     attachDistances($properties, $geo['lat'], $geo['lng']);
@@ -102,6 +106,17 @@ try {
     }
     unset($prop);
 
+    // For "load more" requests, just return the new batch
+    if ($isLoadMore) {
+        echo json_encode([
+            'success'    => true,
+            'properties' => $properties,
+            'totalCount' => $totalCount,
+            'skip'       => $skip,
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        exit;
+    }
+
     // 5. Public records
     // Use parsed address parts first, fall back to geocoder results
     $publicRecords = getPublicRecords(
@@ -115,7 +130,7 @@ try {
     );
 
     // 6. Scope label
-    $radiusLabels = ['0.25'=>'¼ mile','0.5'=>'½ mile','1.0'=>'1 mile','2.0'=>'2 miles','5.0'=>'5 miles','10.0'=>'10 miles'];
+    $radiusLabels = ['0.0625'=>'1/16 mile','0.125'=>'⅛ mile','0.25'=>'¼ mile','0.5'=>'½ mile','1.0'=>'1 mile','2.0'=>'2 miles','5.0'=>'5 miles','10.0'=>'10 miles'];
     $geoScope     = ($radiusMiles <= 1.0 && !empty($geo['postcode']))
         ? 'ZIP ' . $geo['postcode']
         : ($geo['city'] ?? $geo['postcode'] ?? 'this area');
@@ -130,6 +145,7 @@ try {
         'radiusLabel'     => $radiusLabels[(string)$radiusMiles] ?? "{$radiusMiles} miles",
         'closedDays'      => $closedDays,
         'properties'      => $properties,
+        'totalCount'      => $totalCount,
         'publicRecords'   => $publicRecords,
         'searchedAddress' => $fullAddress,
     ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);

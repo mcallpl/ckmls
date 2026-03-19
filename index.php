@@ -88,6 +88,8 @@
     <!-- Radius -->
     <div class="sec-label">Search Radius</div>
     <select id="rSel" style="max-width:200px">
+        <option value="0.0625">1/16 mile</option>
+        <option value="0.125">⅛ mile</option>
         <option value="0.25">¼ mile</option>
         <option value="0.5">½ mile</option>
         <option value="1.0" selected>1 mile</option>
