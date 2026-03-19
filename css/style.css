@@ -276,11 +276,11 @@ input::placeholder { color: var(--mut2); }
     box-shadow: 0 2px 8px rgba(0,0,0,.6); pointer-events: none;
 }
 
-/* Photo cycling container — 16:9-ish aspect */
+/* Photo cycling container — 4:3 aspect ratio */
 .pc-wrap {
     position: relative;
     width: 100%;
-    height: 280px;          /* tall enough to look square-ish on a ~900px card */
+    aspect-ratio: 4 / 3;
     overflow: hidden;
     background: var(--surf2);
     display: block;
@@ -343,7 +343,7 @@ input::placeholder { color: var(--mut2); }
 .no-photo {
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     gap: 8px; color: var(--mut2); font-size: .85rem;
-    background: var(--surf2); height: 280px;
+    background: var(--surf2);
 }
 .no-photo .np-icon { font-size: 2rem; opacity: .35; }
 
@@ -516,7 +516,7 @@ input::placeholder { color: var(--mut2); }
 
 @media (max-width: 640px) {
     .search-card { padding: 22px 18px; }
-    .pc-wrap, .no-photo { height: 220px; }
+    .pc-wrap { aspect-ratio: 4 / 3; }
     .c-head { flex-direction: column; }
     .header { padding: 24px 18px 20px; }
     #map { height: 300px; }

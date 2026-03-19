@@ -33,14 +33,14 @@ function buildPhotoSection(prop, cardIdx) {
                  : prop._photo ? [prop._photo] : [];
 
     const wrap = document.createElement('div');
-    wrap.style.cssText = 'position:relative;width:100%;height:300px;overflow:hidden;background:#16181f;';
+    wrap.className = 'pc-wrap';
     outer.appendChild(wrap);
 
     if (!photos.length) {
-        wrap.style.cssText += 'display:flex;flex-direction:column;align-items:center;justify-content:center;';
+        wrap.classList.add('no-photo');
         const icon = document.createElement('div');
         icon.textContent = '🏠';
-        icon.style.cssText = 'font-size:2.5rem;opacity:.25;';
+        icon.className = 'np-icon';
         wrap.appendChild(icon);
         return outer;
     }
@@ -50,7 +50,7 @@ function buildPhotoSection(prop, cardIdx) {
     img.src = photos[0];
     img.alt = 'Property photo';
     img.loading = 'lazy';
-    img.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;display:block;';
+    img.className = 'pc-img';
     wrap.appendChild(img);
 
     if (photos.length < 2) return outer;
@@ -61,27 +61,23 @@ function buildPhotoSection(prop, cardIdx) {
 
     // Prev button
     const prev = document.createElement('button');
-    prev.innerHTML = '&#8592;';
+    prev.className = 'pc-prev';
+    prev.innerHTML = '&#8249;';
     prev.title = 'Previous photo';
-    prev.style.cssText = 'position:absolute;top:0;left:0;bottom:0;width:52px;background:rgba(0,0,0,.55);color:#fff;border:none;font-size:2rem;cursor:pointer;z-index:10;padding:0;display:flex;align-items:center;justify-content:center;transition:background .15s;';
-    prev.onmouseenter = function(){ this.style.background='rgba(0,0,0,.82)'; };
-    prev.onmouseleave = function(){ this.style.background='rgba(0,0,0,.55)'; };
     prev.onclick = function(e) { e.stopPropagation(); photoStep(uid, -1); };
     wrap.appendChild(prev);
 
     // Next button
     const next = document.createElement('button');
-    next.innerHTML = '&#8594;';
+    next.className = 'pc-next';
+    next.innerHTML = '&#8250;';
     next.title = 'Next photo';
-    next.style.cssText = 'position:absolute;top:0;right:0;bottom:0;width:52px;background:rgba(0,0,0,.55);color:#fff;border:none;font-size:2rem;cursor:pointer;z-index:10;padding:0;display:flex;align-items:center;justify-content:center;transition:background .15s;';
-    next.onmouseenter = function(){ this.style.background='rgba(0,0,0,.82)'; };
-    next.onmouseleave = function(){ this.style.background='rgba(0,0,0,.55)'; };
     next.onclick = function(e) { e.stopPropagation(); photoStep(uid, 1); };
     wrap.appendChild(next);
 
     // Counter
     const ctr = document.createElement('div');
-    ctr.style.cssText = 'position:absolute;bottom:9px;right:10px;background:rgba(0,0,0,.65);color:#fff;font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;z-index:10;pointer-events:none;font-family:Syne,sans-serif;';
+    ctr.className = 'pc-count';
     ctr.innerHTML = '<span class="pc-cur">1</span> / ' + photos.length;
     _photoStore[uid].counter = ctr;
     wrap.appendChild(ctr);
