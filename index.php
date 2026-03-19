@@ -153,26 +153,30 @@ header('Cache-Control: no-cache, must-revalidate');
 <script src="js/app.js?v=<?=$cacheBust?>"></script>
 <script src="js/map.js?v=<?=$cacheBust?>"></script>
 <script>
-/* Override result count display — inline so it can never be cached stale */
+/* Fix the result count display — watches for #result-count and rewrites it.
+   This works even if the browser has cached old JS that sets it directly. */
 (function() {
-    const _orig = window.updateResultCount;
-    window.updateResultCount = function(el, showing, total) {
+    var observer = new MutationObserver(function() {
+        var el = document.getElementById('result-count');
         if (!el) return;
-        /* Use server-provided HTML if available */
-        if (typeof appData !== 'undefined' && appData && appData.countHtml) {
-            el.innerHTML = appData.countHtml;
-            return;
-        }
-        var hitCap  = (typeof appData !== 'undefined' && appData && appData.hitCap);
-        var capSize = (typeof appData !== 'undefined' && appData && appData.displayCap) || 50;
+        if (el.dataset.fixed) return; /* already fixed */
+        if (typeof appData === 'undefined' || !appData) return;
+
+        var showing = appData.properties ? appData.properties.length : 0;
+        var total   = appData.totalCount;
+        var hitCap  = appData.hitCap;
+        var cap     = appData.displayCap || 50;
+
         if (total && total > showing) {
-            el.innerHTML = '<strong>' + total.toLocaleString() + '</strong> homes match your criteria &middot; showing <strong>' + showing.toLocaleString() + '</strong>';
+            el.innerHTML = 'Showing <strong>' + showing.toLocaleString() + '</strong> of <strong>' + total.toLocaleString() + '</strong> listings';
         } else if (hitCap) {
-            el.innerHTML = 'More than <strong>' + capSize + '</strong> homes match your criteria &middot; showing <strong>' + showing.toLocaleString() + '</strong>';
+            el.innerHTML = 'Showing <strong>' + showing.toLocaleString() + '</strong> of <strong>' + cap + '+</strong> listings';
         } else {
-            el.innerHTML = '<strong>' + showing.toLocaleString() + '</strong> home' + (showing !== 1 ? 's' : '') + ' found';
+            el.innerHTML = '<strong>' + showing.toLocaleString() + '</strong> listing' + (showing !== 1 ? 's' : '');
         }
-    };
+        el.dataset.fixed = '1';
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
 })();
 </script>
 <script>
