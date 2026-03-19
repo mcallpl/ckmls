@@ -86,7 +86,7 @@ document.getElementById('searchForm').addEventListener('submit', async (e) => {
         if (!data.success) { showError(data.error || 'An unknown error occurred.'); return; }
 
         appData = data;
-        appTotalCount = data.totalCount || data.properties.length;
+        appTotalCount = data.totalCount || null;
         appData.searchedAddress = addr.value.trim();
         renderResults(data);
         initMap(data.geocoded, data.properties);
