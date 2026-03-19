@@ -115,6 +115,13 @@ if ($editedNarrative) {
     $propCount  = count($properties);
     $teamName   = defined('AGENT_TEAM_NAME') && AGENT_TEAM_NAME ? AGENT_TEAM_NAME : $agentName;
 
+    $notesBlock = $agentNotes
+        ? "AGENT'S PERSONAL INSIGHTS (IMPORTANT — these are the agent's own words about this market/client. "
+          ."You MUST incorporate these points into the narrative. Weave them in naturally and personally, "
+          ."as if the agent is speaking directly to the client. Do not quote verbatim, but every key point "
+          ."the agent mentions should come through clearly):\n\"{$agentNotes}\"\n\n"
+        : "";
+
     $prompt = "You are a top real estate professional writing a Quick CMA email narrative.\n\n"
         ."AREA: {$subjectAddr} — {$city}".($zip ? " {$zip}" : '')."\n\n"
         ."MARKET SNAPSHOT ({$propCount} comps):\n"
@@ -124,12 +131,13 @@ if ($editedNarrative) {
         ."- Avg days on market: {$avgDom}\n"
         ."- Homes: {$bedRange}, avg {$avgSqft}, built {$yearRange}\n\n"
         ."COMPS:\n".implode("\n", $summary)."\n\n"
-        ."AGENT NOTES (flavor only — do NOT copy verbatim, weave naturally): ".($agentNotes ?: 'None')."\n\n"
+        .$notesBlock
         ."Write 3 paragraphs:\n"
         ."1. Neighborhood scene and what a Quick CMA reveals vs online estimates\n"
-        ."2. Specific data analysis with actual numbers from the comps\n"
+        ."2. Specific data analysis with actual numbers from the comps — blend in the agent's personal insights here\n"
         ."3. Actionable insight + warm invite to contact {$teamName} for a full analysis\n\n"
-        ."Tone: expert, warm, conversational. No greeting, no sign-off, no bullets.";
+        ."Tone: expert, warm, conversational, personal. The agent's notes should feel like a natural part of "
+        ."the message — as if the agent personally wrote this with the client in mind. No greeting, no sign-off, no bullets.";
 
     try {
         $ch = curl_init('https://api.openai.com/v1/chat/completions');
