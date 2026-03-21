@@ -133,7 +133,15 @@ document.getElementById('searchForm').addEventListener('submit', async (e) => {
     if (!addr || !addr.value.trim()) { showError('Please enter an address to search.'); return; }
 
     showLoader();
+
+    // Preserve the radius value during drag-triggered submits
+    const savedRadius = document.getElementById('hR')?.value;
     try { syncForm(); } catch(ex) { console.warn('syncForm error:', ex); }
+    // If this submit was triggered by a radius drag, ensure the dragged value survives
+    if (typeof radiusDragInProgress !== 'undefined' && radiusDragInProgress && savedRadius) {
+        const hR = document.getElementById('hR');
+        if (hR) hR.value = savedRadius;
+    }
 
     const formData = new FormData(e.target);
 

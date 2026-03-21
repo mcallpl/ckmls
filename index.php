@@ -206,7 +206,16 @@ function syncForm() {
         scBox.appendChild(h);
     });
     hCD.value = cdSel.value;
-    hR.value  = rSel.value;
+    // For radius: if dropdown is on a custom drag value, use the stored numeric value
+    const selVal = rSel.value;
+    if (selVal === '_custom') {
+        const customOpt = rSel.querySelector('option[value="_custom"]');
+        const stored = customOpt ? customOpt.dataset.miles : null;
+        if (stored) hR.value = stored;
+        // else keep hR.value as-is (already set by drag handler)
+    } else {
+        hR.value = selVal;
+    }
 }
 
 // Show/hide "Sold Within" when Closed is toggled

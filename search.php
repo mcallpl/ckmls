@@ -66,7 +66,9 @@ if (empty($statuses)) $statuses = ['Active'];
 
 // ── Other params ────────────────────────────────────────────────
 $closedDays  = (int)($_POST['closed_days'] ?? 90);
-$radiusMiles = (float)($_POST['radius']    ?? 0.125);
+$radiusRaw   = $_POST['radius'] ?? '0.125';
+$radiusMiles = is_numeric($radiusRaw) ? (float)$radiusRaw : 0.125;
+if ($radiusMiles < 0.01) $radiusMiles = 0.125;  // safety: never search with zero radius
 $skip        = max(0, (int)($_POST['skip'] ?? 0));
 $isLoadMore  = $skip > 0;
 

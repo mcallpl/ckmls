@@ -68,7 +68,7 @@ function updateRadiusDropdownDisplay(miles) {
         sel.selectedIndex = best;
         removeCustomOption(sel);
     } else {
-        // Add/update a custom option
+        // Add/update a custom option — store actual numeric miles as data attribute
         var customOpt = sel.querySelector('option[value="_custom"]');
         var label = miles < 0.1 ? Math.round(miles * 5280) + ' ft' : miles.toFixed(2) + ' mi';
         if (!customOpt) {
@@ -77,9 +77,10 @@ function updateRadiusDropdownDisplay(miles) {
             sel.appendChild(customOpt);
         }
         customOpt.textContent = '~' + label;
+        customOpt.dataset.miles = miles.toFixed(4);
         customOpt.selected = true;
     }
-    // Update hidden form field
+    // Always update hidden form field with the actual numeric value
     var hR = document.getElementById('hR');
     if (hR) hR.value = miles.toFixed(4);
 }
@@ -339,7 +340,15 @@ window.initMap = function(geocoded, properties) {
         radiusMiles = pendingDragRadius;
         pendingDragRadius = null;
     } else {
-        radiusMiles = radiusSel ? parseFloat(radiusSel.value) : 1.0;
+        // Read from dropdown; if custom, read the stored miles data attribute
+        var selVal = radiusSel ? radiusSel.value : '0.125';
+        if (selVal === '_custom') {
+            var customOpt = radiusSel.querySelector('option[value="_custom"]');
+            radiusMiles = customOpt ? parseFloat(customOpt.dataset.miles) : 0.125;
+        } else {
+            radiusMiles = parseFloat(selVal);
+        }
+        if (isNaN(radiusMiles) || radiusMiles < 0.01) radiusMiles = 0.125;
     }
     serverRadiusMiles = radiusMiles;
 
@@ -363,8 +372,20 @@ window.initMap = function(geocoded, properties) {
     });
 
     // Live filter as user drags the radius edge
+    var suppressRadiusChanged = false;
     radiusCircle.addListener('radius_changed', function() {
+        // Guard: skip events fired by programmatic radius changes (e.g. re-creating circle)
+        if (suppressRadiusChanged) return;
+
         var newMiles = radiusCircle.getRadius() / 1609.34;
+
+        // Guard: enforce minimum radius (prevent collapse to 0)
+        if (newMiles < 0.01) {
+            suppressRadiusChanged = true;
+            radiusCircle.setRadius(0.01 * 1609.34);
+            suppressRadiusChanged = false;
+            newMiles = 0.01;
+        }
 
         // Update dropdown display without triggering its change listener
         radiusDragInProgress = true;
@@ -374,23 +395,23 @@ window.initMap = function(geocoded, properties) {
         // Debounce filtering
         clearTimeout(radiusDragTimer);
         radiusDragTimer = setTimeout(function() {
-            // If user dragged larger than server data, re-fetch
+            // If user dragged larger than server data, re-fetch with new radius
             if (newMiles > serverRadiusMiles * 1.1) {
                 pendingDragRadius = newMiles;
+                // Set the hidden radius field directly (syncForm will read it via _custom data attr)
                 var hR = document.getElementById('hR');
                 if (hR) hR.value = newMiles.toFixed(4);
-                // Submit without going through rSel change listener
-                radiusDragInProgress = true;
-                try { syncForm(); } catch(ex) {}
-                // Override hR after syncForm since syncForm resets it to dropdown value
-                if (hR) hR.value = newMiles.toFixed(4);
                 var form = document.getElementById('searchForm');
-                if (form) form.requestSubmit();
-                radiusDragInProgress = false;
+                if (form) {
+                    radiusDragInProgress = true;
+                    form.requestSubmit();
+                    radiusDragInProgress = false;
+                }
             } else {
+                // Data already on client, just filter visually
                 filterByCurrentSpatialMode();
             }
-        }, 200);
+        }, 300);
     });
 
     // ── Property markers ──
