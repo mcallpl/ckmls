@@ -7,10 +7,11 @@ let activeFilters = {
     minPrice:'', maxPrice:'',
     minSqft:'', maxSqft:'',
     minLot:'', maxLot:'',
+    rental:'exclude',
 };
 
 function resetFilters() {
-    activeFilters = { beds:'any', baths:'any', types:[], minPrice:'', maxPrice:'', minSqft:'', maxSqft:'', minLot:'', maxLot:'' };
+    activeFilters = { beds:'any', baths:'any', types:[], minPrice:'', maxPrice:'', minSqft:'', maxSqft:'', minLot:'', maxLot:'', rental:'exclude' };
 }
 
 // ── Build filter bar ─────────────────────────────────────────────
@@ -80,6 +81,16 @@ function buildFilterBar(properties) {
                         <button class="fpill" data-val="Multi">Multi-Family</button>
                         ${dynamicTypes.map(t => `<button class="fpill" data-val="${esc(t)}">${esc(t)}</button>`).join('')}
                     </div>
+                </div>
+            </div>
+            <div class="filter-row">
+                <div class="filter-group">
+                    <div class="filter-label">Rental / Lease</div>
+                    <select class="filter-select" id="f_rental">
+                        <option value="exclude" selected>Don't show rental/lease</option>
+                        <option value="include">Include rental/lease</option>
+                        <option value="only">Show only rental/lease</option>
+                    </select>
                 </div>
             </div>
             <div class="filter-row">
@@ -177,6 +188,15 @@ function buildFilterBar(properties) {
         });
     });
 
+    // Rental dropdown
+    const rentalSel = wrap.querySelector('#f_rental');
+    rentalSel.value = activeFilters.rental;
+    rentalSel.addEventListener('change', () => {
+        activeFilters.rental = rentalSel.value;
+        showResetIfNeeded();
+        applyFiltersAndRender();
+    });
+
     // Reset button
     wrap.querySelector('#filterReset').addEventListener('click', () => {
         resetFilters();
@@ -184,6 +204,8 @@ function buildFilterBar(properties) {
             b.classList.toggle('active', b.dataset.val === 'any');
         });
         wrap.querySelectorAll('.filter-input').forEach(i => i.value = '');
+        const rentalReset = wrap.querySelector('#f_rental');
+        if (rentalReset) rentalReset.value = 'exclude';
         wrap.querySelector('#filterReset').style.display = 'none';
         applyFiltersAndRender();
     });
@@ -197,8 +219,52 @@ function showResetIfNeeded() {
     const dirty = activeFilters.beds !== 'any' || activeFilters.baths !== 'any' ||
                   activeFilters.types.length > 0 || activeFilters.minPrice ||
                   activeFilters.maxPrice || activeFilters.minSqft || activeFilters.maxSqft ||
-                  activeFilters.minLot || activeFilters.maxLot;
+                  activeFilters.minLot || activeFilters.maxLot ||
+                  activeFilters.rental !== 'exclude';
     btn.style.display = dirty ? 'inline-flex' : 'none';
+}
+
+// ── Restore filter UI to match activeFilters state ───────────────
+function restoreFilterUI() {
+    // Beds
+    const bedsGroup = document.querySelector('[data-filter="beds"]');
+    if (bedsGroup) {
+        bedsGroup.querySelectorAll('.fpill').forEach(b => {
+            b.classList.toggle('active', b.dataset.val === activeFilters.beds);
+        });
+    }
+    // Baths
+    const bathsGroup = document.querySelector('[data-filter="baths"]');
+    if (bathsGroup) {
+        bathsGroup.querySelectorAll('.fpill').forEach(b => {
+            b.classList.toggle('active', b.dataset.val === activeFilters.baths);
+        });
+    }
+    // Types
+    const typeGroup = document.querySelector('[data-filter="type"]');
+    if (typeGroup) {
+        if (activeFilters.types.length === 0) {
+            typeGroup.querySelectorAll('.fpill').forEach(b => {
+                b.classList.toggle('active', b.dataset.val === 'any');
+            });
+        } else {
+            typeGroup.querySelectorAll('.fpill').forEach(b => {
+                if (b.dataset.val === 'any') b.classList.remove('active');
+                else b.classList.toggle('active', activeFilters.types.includes(b.dataset.val));
+            });
+        }
+    }
+    // Text inputs
+    const inputMap = { f_minPrice:'minPrice', f_maxPrice:'maxPrice', f_minSqft:'minSqft', f_maxSqft:'maxSqft', f_minLot:'minLot', f_maxLot:'maxLot' };
+    Object.entries(inputMap).forEach(([id, key]) => {
+        const el = document.getElementById(id);
+        if (el && activeFilters[key]) el.value = activeFilters[key];
+    });
+    // Rental dropdown
+    const rentalEl = document.getElementById('f_rental');
+    if (rentalEl) rentalEl.value = activeFilters.rental;
+    // Show reset button if needed
+    showResetIfNeeded();
 }
 
 // ── Apply filters + sort, then re-render ─────────────────────────
@@ -231,6 +297,14 @@ function applyFilters(props) {
         const lot      = p.LotSizeAcres         || 0;
         const pSubType = (p.PropertySubType || '').toLowerCase().trim();
         const pType    = (p.PropertyType    || '').toLowerCase().trim();
+
+        // Rental / Lease filter
+        if (activeFilters.rental !== 'include') {
+            const rentalTerms = ['lease','rental','rent'];
+            const isRental = rentalTerms.some(x => pSubType.includes(x) || pType.includes(x));
+            if (activeFilters.rental === 'exclude' && isRental) return false;
+            if (activeFilters.rental === 'only' && !isRental) return false;
+        }
 
         // Beds
         if (activeFilters.beds !== 'any') {

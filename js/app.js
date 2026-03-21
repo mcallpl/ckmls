@@ -196,12 +196,16 @@ function renderResults(data) {
     wrap.appendChild(buildRecordsSection(data));
 
     if (data.properties.length > 0) {
-        resetFilters();
+        // Preserve existing filter criteria across re-searches (criteria locking)
+        // Do NOT call resetFilters() — keep beds, baths, type, price, sqft, lot, rental
+
         // Select all homes by default
         selectedHomes.clear();
         data.properties.forEach(p => selectedHomes.add(getPropKey(p)));
 
         wrap.appendChild(buildFilterBar(data.properties));
+        // Restore filter UI state to match preserved activeFilters
+        restoreFilterUI();
         wrap.appendChild(buildCmaButton());
         wrap.appendChild(buildSelectionBar());
         wrap.appendChild(buildSortBar(data.properties.length, appTotalCount));

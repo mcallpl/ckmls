@@ -300,6 +300,8 @@ input::placeholder { color: var(--mut2); }
 .filter-input-prefix { padding: 0 8px 0 12px; font-size: .88rem; color: var(--muted); flex-shrink: 0; }
 .filter-input { flex: 1; background: none; border: none; outline: none; padding: 9px 12px 9px 4px; font-size: .88rem; font-family: 'DM Sans', sans-serif; color: var(--text); min-width: 0; }
 .filter-input::placeholder { color: var(--mut2); }
+.filter-select { background: var(--surf2); border: 1.5px solid var(--bord2); border-radius: var(--radius-sm); padding: 9px 12px; font-size: .88rem; font-family: 'DM Sans', sans-serif; color: var(--text); cursor: pointer; transition: border-color .18s, box-shadow .18s; width: 100%; }
+.filter-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(91,127,255,.1); outline: none; }
 
 /* ── 11. PROPERTY CARDS & PHOTO CYCLING ──────────────────── */
 .p-card {
