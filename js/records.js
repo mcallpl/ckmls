@@ -66,14 +66,14 @@ function buildRecordsSection(data) {
 
     body.appendChild(createEl(buildOwnerBlock(attom)));
     if (attom && !attom._error) {
+        const detailsHtml = buildPropertyDetailsBlock(attom);
+        if (detailsHtml) body.appendChild(createEl(detailsHtml));
         const purchaseHtml = buildPurchaseBlock(attom);
         if (purchaseHtml) body.appendChild(createEl(purchaseHtml));
         const loansHtml = buildLoansBlock(attom);
         if (loansHtml) body.appendChild(createEl(loansHtml));
         const taxHtml = buildTaxBlock(attom);
         if (taxHtml) body.appendChild(createEl(taxHtml));
-        const detailsHtml = buildPropertyDetailsBlock(attom);
-        if (detailsHtml) body.appendChild(createEl(detailsHtml));
     }
     if (hist.length) body.appendChild(createEl(buildHistoryBlock(hist)));
     const linksHtml = buildLinksBlock(links);
@@ -193,14 +193,14 @@ function buildTaxBlock(attom) {
 function buildPropertyDetailsBlock(attom) {
     if (!attom || attom._error) return '';
     const rows = [];
-    if (attom.land_use)    rows.push(['Land Use',   attom.land_use]);
-    if (attom.lot_sqft)    rows.push(['Lot Sq Ft',  fmtNum(attom.lot_sqft)]);
-    if (attom.stories)     rows.push(['Stories',    attom.stories]);
-    if (attom.bedrooms)    rows.push(['Bedrooms',   attom.bedrooms]);
-    if (attom.bathrooms)   rows.push(['Bathrooms',  attom.bathrooms]);
-    if (attom.year_built)  rows.push(['Year Built', attom.year_built]);
-    if (attom.gross_sqft)  rows.push(['Gross Sq Ft',fmtNum(attom.gross_sqft)]);
-    if (attom.apn)         rows.push(['APN',        attom.apn]);
+    if (attom.bedrooms)       rows.push(['Bedrooms',   attom.bedrooms]);
+    if (attom.bathrooms)      rows.push(['Bathrooms',  attom.bathrooms]);
+    if (attom.gross_sqft)     rows.push(['Living Sq Ft', fmtNum(attom.gross_sqft)]);
+    if (attom.lot_size_sqft)  rows.push(['Lot Sq Ft',  fmtNum(attom.lot_size_sqft)]);
+    if (attom.stories)        rows.push(['Stories',    attom.stories]);
+    if (attom.year_built)     rows.push(['Year Built', attom.year_built]);
+    if (attom.land_use)       rows.push(['Land Use',   attom.land_use]);
+    if (attom.apn)            rows.push(['APN',        attom.apn]);
     if (!rows.length) return '';
     return `
         <div class="rec-group">
