@@ -38,12 +38,26 @@ function buildRecordsSection(data) {
     const links   = data.publicRecords?.links    || {};
     const address = data.publicRecords?.address  || data.geocoded?.display_name || '';
 
+    // Build a quick stats line from ATTOM data
+    const statParts = [];
+    if (attom && !attom._error) {
+        if (attom.bedrooms)   statParts.push(attom.bedrooms + ' bd');
+        if (attom.bathrooms)  statParts.push(attom.bathrooms + ' ba');
+        if (attom.gross_sqft) statParts.push(fmtNum(attom.gross_sqft) + ' sqft');
+        if (attom.year_built) statParts.push('Built ' + attom.year_built);
+        if (attom.lot_size_sqft) statParts.push(fmtNum(attom.lot_size_sqft) + ' sqft lot');
+    }
+    const statsLine = statParts.length
+        ? `<p class="records-stats">${statParts.map(s => `<span>${esc(s)}</span>`).join('<span class="records-stats-sep">·</span>')}</p>`
+        : '';
+
     wrap.innerHTML = `
         <div class="records-header">
             <div class="records-icon">📋</div>
             <div>
                 <h2>${esc(address)}</h2>
                 <p>Ownership, purchase history, loans &amp; public records</p>
+                ${statsLine}
             </div>
         </div>`;
 
