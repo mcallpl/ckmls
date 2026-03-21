@@ -66,7 +66,7 @@ if (empty($statuses)) $statuses = ['Active'];
 
 // ── Other params ────────────────────────────────────────────────
 $closedDays  = (int)($_POST['closed_days'] ?? 90);
-$radiusMiles = (float)($_POST['radius']    ?? 1.0);
+$radiusMiles = (float)($_POST['radius']    ?? 0.125);
 $skip        = max(0, (int)($_POST['skip'] ?? 0));
 $isLoadMore  = $skip > 0;
 
@@ -82,6 +82,19 @@ try {
     // 2. Search MLS — fetch a broad set, then filter by true radius
     $searchResult = searchNearAddress($geo, $radiusMiles, $statuses, $closedDays, $skip);
     $properties   = $searchResult['properties'];
+
+    // 2b. Normalize RESO enum status names back to display names
+    $statusDisplayMap = [
+        'ComingSoon'          => 'Coming Soon',
+        'ActiveUnderContract' => 'Active Under Contract',
+    ];
+    foreach ($properties as &$prop) {
+        $st = $prop['StandardStatus'] ?? '';
+        if (isset($statusDisplayMap[$st])) {
+            $prop['StandardStatus'] = $statusDisplayMap[$st];
+        }
+    }
+    unset($prop);
 
     // 3. Distances + true radius filter
     attachDistances($properties, $geo['lat'], $geo['lng']);

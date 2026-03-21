@@ -93,10 +93,10 @@ header('Cache-Control: no-cache, must-revalidate');
     <div class="sec-label">Search Radius</div>
     <select id="rSel" style="max-width:200px">
         <option value="0.0625">1/16 mile</option>
-        <option value="0.125">⅛ mile</option>
+        <option value="0.125" selected>⅛ mile</option>
         <option value="0.25">¼ mile</option>
         <option value="0.5">½ mile</option>
-        <option value="1.0" selected>1 mile</option>
+        <option value="1.0">1 mile</option>
         <option value="2.0">2 miles</option>
         <option value="5.0">5 miles</option>
         <option value="10.0">10 miles</option>
@@ -112,7 +112,7 @@ header('Cache-Control: no-cache, must-revalidate');
 
         <!-- closed_days and radius hidden -->
         <input type="hidden" id="hCD" name="closed_days" value="90">
-        <input type="hidden" id="hR"  name="radius"      value="1.0">
+        <input type="hidden" id="hR"  name="radius"      value="0.125">
 
         <!-- Address — full-width single field -->
         <div class="search-hero">
@@ -221,10 +221,19 @@ pills.forEach(cb => {
         cb.closest('.status-pill').classList.toggle('checked', cb.checked);
         toggleClosedDays();
         syncForm();
+        // Auto-resubmit search if results are already showing
+        if (typeof appData !== 'undefined' && appData && addrInput.value.trim()) {
+            document.getElementById('searchForm').requestSubmit();
+        }
     });
 });
 
-cdSel.addEventListener('change', syncForm);
+cdSel.addEventListener('change', () => {
+    syncForm();
+    if (typeof appData !== 'undefined' && appData && addrInput.value.trim()) {
+        document.getElementById('searchForm').requestSubmit();
+    }
+});
 rSel.addEventListener('change', function() {
     if (typeof clearPolygon === 'function' && typeof spatialMode !== 'undefined' && spatialMode === 'polygon') {
         clearPolygon();

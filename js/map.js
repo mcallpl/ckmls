@@ -18,7 +18,7 @@ let drawPolygon     = null;
 let vertexMarkers   = [];
 let mapOverlay      = null;       // for pixel projection
 let radiusDragTimer = null;
-let serverRadiusMiles = 1.0;      // radius used in the last server query
+let serverRadiusMiles = 0.125;    // radius used in the last server query
 let pendingDragRadius = null;     // if set, initMap uses this instead of dropdown
 
 // ── Spatial filter entry point ─────────────────────────────

@@ -71,12 +71,24 @@ function getSelectFields(): string {
 function buildFilters(array $geo, float $radiusMiles, array $statuses, int $closedDays): array {
     $filters = [];
 
+    // Map display status names to RESO OData enum values (no spaces)
+    $statusEnumMap = [
+        'Active'                => 'Active',
+        'Coming Soon'           => 'ComingSoon',
+        'Active Under Contract' => 'ActiveUnderContract',
+        'Pending'               => 'Pending',
+        'Closed'                => 'Closed',
+        'Canceled'              => 'Canceled',
+        'Expired'               => 'Expired',
+    ];
+
     // Build status filter — single eq or OR'd conditions
     if (!empty($statuses)) {
-        if (count($statuses) === 1) {
-            $filters[] = "StandardStatus eq '" . addslashes($statuses[0]) . "'";
+        $enumStatuses = array_map(fn($s) => $statusEnumMap[$s] ?? $s, $statuses);
+        if (count($enumStatuses) === 1) {
+            $filters[] = "StandardStatus eq '" . addslashes($enumStatuses[0]) . "'";
         } else {
-            $parts = array_map(fn($s) => "StandardStatus eq '" . addslashes($s) . "'", $statuses);
+            $parts = array_map(fn($s) => "StandardStatus eq '" . addslashes($s) . "'", $enumStatuses);
             $filters[] = '(' . implode(' or ', $parts) . ')';
         }
     }
