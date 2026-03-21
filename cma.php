@@ -380,11 +380,15 @@ foreach ($properties as $p) {
     $yr       = $p['YearBuilt']    ?? '—';
     $dom      = $p['DaysOnMarket'] ?? null;
     $dist     = isset($p['_distance']) ? round((float)$p['_distance'],2).' mi' : '';
-    $remarks  = htmlspecialchars(substr($p['PublicRemarks'] ?? '', 0, 200));
+    // Use direct photo URL for email (strip proxy wrapper if present)
+    $emailPhoto = $photo;
+    if ($emailPhoto && preg_match('/photo\.php\?url=(.+)$/', $emailPhoto, $pm)) {
+        $emailPhoto = urldecode($pm[1]); // use the direct Trestle URL
+    }
 
-    $photoHtml = $photo
-        ? '<img src="'.htmlspecialchars($photo).'" width="100%" style="display:block;width:100%;height:200px;object-fit:cover;border-radius:10px 10px 0 0;">'
-        : '<div style="background:#e5e7eb;height:120px;border-radius:10px 10px 0 0;display:flex;align-items:center;justify-content:center;font-size:2rem;">🏠</div>';
+    $photoHtml = $emailPhoto
+        ? '<img src="'.htmlspecialchars($emailPhoto).'" width="100%" style="display:block;width:100%;height:180px;object-fit:cover;border-radius:10px 10px 0 0;" alt="'.htmlspecialchars(trim(($p['StreetNumber']??'').' '.($p['StreetName']??''))).'">'
+        : '<div style="background:#e5e7eb;height:80px;border-radius:10px 10px 0 0;display:flex;align-items:center;justify-content:center;font-size:2rem;color:#9ca3af;">🏠</div>';
 
     $closedStrip = $isClosed ? '
         <tr><td colspan="2" style="padding:0 0 12px;">
@@ -431,7 +435,6 @@ foreach ($properties as $p) {
                     '.$domCell.'
                 </tr>
             </table>
-            '.($remarks ? '<p style="font-size:12px;color:#6b7280;line-height:1.6;margin:0;border-left:3px solid #e5e7eb;padding-left:10px;">'.$remarks.'</p>' : '').'
         </td></tr>
     </table>';
 }
@@ -552,6 +555,10 @@ $errors  = [];
 $sent    = [];
 $subject = $emailSubject ?: "Your CMA — {$subjectAddr}";
 
+// Log email size for debugging
+$emailSize = strlen($htmlEmail);
+$emailSizeKB = round($emailSize / 1024, 1);
+
 foreach ($recipients as $r) {
     $toEmail = filter_var(trim($r['email'] ?? ''), FILTER_VALIDATE_EMAIL);
     $toName  = trim($r['name'] ?? '');
@@ -562,7 +569,9 @@ foreach ($recipients as $r) {
     $fromEmail = $sigEmail ?: (defined('AGENT_EMAIL') ? AGENT_EMAIL : 'Chip@chipandkim.com');
     $fromName  = $sigName  ?: (defined('AGENT_NAME')  ? AGENT_NAME  : 'Chip McAllister');
     $cleanName = str_replace(['"',"'"], '', $fromName);
-    $toHeader  = $toName ? '"'.str_replace('"','',$toName).'" <'.$toEmail.'>' : $toEmail;
+
+    // Simple to-header — avoid complex quoting that can cause delivery issues
+    $toHeader  = $toEmail;
 
     $headers  = "MIME-Version: 1.0\r\n";
     $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
@@ -570,21 +579,32 @@ foreach ($recipients as $r) {
     $headers .= "Reply-To: {$fromEmail}\r\n";
     $headers .= "X-Mailer: MLS-CMA/5.0\r\n";
 
-    if (@mail($toHeader, $subject, $html, $headers, "-f {$fromEmail}")) {
+    // Try sending with -f envelope sender first, then without if it fails
+    $mailResult = @mail($toHeader, $subject, $html, $headers, "-f {$fromEmail}");
+
+    if (!$mailResult) {
+        // Retry without -f flag (some servers reject it)
+        $mailResult = @mail($toHeader, $subject, $html, $headers);
+    }
+
+    if ($mailResult) {
         $sent[] = $toEmail;
     } else {
         $err = error_get_last();
-        $errors[] = "Failed to send to {$toEmail}".($err ? ': '.$err['message'] : '');
+        $errors[] = "Failed to send to {$toEmail}".($err ? ': '.$err['message'] : ' (mail() returned false)');
     }
 }
+
+// If mail() returned true but email might not arrive, add diagnostic info
+$diagInfo = "Email size: {$emailSizeKB}KB, {$propCount} comps";
 
 echo json_encode([
     'success' => count($sent) > 0,
     'sent'    => $sent,
     'errors'  => $errors,
     'message' => count($sent) > 0
-        ? 'CMA sent to '.implode(', ',$sent).(count($errors) ? ' ('.implode('; ',$errors).')' : '')
-        : 'Failed: '.implode('; ',$errors),
+        ? 'CMA sent to '.implode(', ',$sent)." ({$diagInfo})".(count($errors) ? ' ('.implode('; ',$errors).')' : '')
+        : 'Failed: '.implode('; ',$errors)." ({$diagInfo})",
 ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
 } catch (Throwable $e) {
