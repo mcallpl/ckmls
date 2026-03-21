@@ -11,6 +11,7 @@ let radiusCircle    = null;
 
 // Spatial mode state
 let spatialMode     = 'radius';   // 'radius' | 'polygon'
+let radiusDragInProgress = false; // true while updating dropdown from circle drag
 let drawingActive   = false;
 let polyVertices    = [];
 let drawPolyline    = null;
@@ -364,7 +365,11 @@ window.initMap = function(geocoded, properties) {
     // Live filter as user drags the radius edge
     radiusCircle.addListener('radius_changed', function() {
         var newMiles = radiusCircle.getRadius() / 1609.34;
+
+        // Update dropdown display without triggering its change listener
+        radiusDragInProgress = true;
         updateRadiusDropdownDisplay(newMiles);
+        radiusDragInProgress = false;
 
         // Debounce filtering
         clearTimeout(radiusDragTimer);
@@ -374,8 +379,14 @@ window.initMap = function(geocoded, properties) {
                 pendingDragRadius = newMiles;
                 var hR = document.getElementById('hR');
                 if (hR) hR.value = newMiles.toFixed(4);
+                // Submit without going through rSel change listener
+                radiusDragInProgress = true;
+                try { syncForm(); } catch(ex) {}
+                // Override hR after syncForm since syncForm resets it to dropdown value
+                if (hR) hR.value = newMiles.toFixed(4);
                 var form = document.getElementById('searchForm');
                 if (form) form.requestSubmit();
+                radiusDragInProgress = false;
             } else {
                 filterByCurrentSpatialMode();
             }

@@ -235,6 +235,8 @@ cdSel.addEventListener('change', () => {
     }
 });
 rSel.addEventListener('change', function() {
+    // Skip if this change was triggered by radius circle drag (map.js handles the submit)
+    if (typeof radiusDragInProgress !== 'undefined' && radiusDragInProgress) return;
     if (typeof clearPolygon === 'function' && typeof spatialMode !== 'undefined' && spatialMode === 'polygon') {
         clearPolygon();
     }
