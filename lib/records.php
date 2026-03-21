@@ -173,7 +173,12 @@ function fetchAttomData(
                            ?? ($building['size']['livingsize']       ?? null),
         'bedrooms'         => $building['rooms']['beds']              ?? null,
         'bathrooms'        => $building['rooms']['bathstotal']
-                           ?? ($building['rooms']['bathsfull']          ?? null),
+                           ?? ($building['rooms']['bathsfull']
+                           ?? ($building['rooms']['bathsTotal']
+                           ?? ($building['rooms']['bathsFull']
+                           ?? ($building['rooms']['bathTotal']
+                           ?? ($building['rooms']['baths']             ?? null))))),
+        '_raw_rooms'       => $building['rooms'] ?? null,  // debug: see what ATTOM returns
         'stories'          => $building['summary']['levels']          ?? null,
         'heating'          => $building['interior']['heatingtype']    ?? '',
         'cooling'          => $building['interior']['coolingtype']    ?? '',

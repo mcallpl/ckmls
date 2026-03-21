@@ -195,6 +195,10 @@ function buildPropertyDetailsBlock(attom) {
     const rows = [];
     if (attom.bedrooms != null)  rows.push(['Bedrooms',   attom.bedrooms]);
     if (attom.bathrooms != null) rows.push(['Bathrooms',  attom.bathrooms]);
+    // Debug: show raw rooms data if bathrooms is still missing
+    if (attom.bathrooms == null && attom._raw_rooms) {
+        rows.push(['Bathrooms (raw)', JSON.stringify(attom._raw_rooms)]);
+    }
     if (attom.gross_sqft)     rows.push(['Living Sq Ft', fmtNum(attom.gross_sqft)]);
     if (attom.lot_size_sqft)  rows.push(['Lot Sq Ft',  fmtNum(attom.lot_size_sqft)]);
     if (attom.stories)        rows.push(['Stories',    attom.stories]);
