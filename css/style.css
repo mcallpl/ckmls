@@ -464,8 +464,8 @@ input::placeholder { color: var(--mut2); }
 .pac-icon       { display: none !important; }
 .pac-item span  { color: var(--muted) !important; }
 .pac-item-query { color: var(--heading) !important; }
-/* Hide "Powered by Google" logo for dark mode consistency */
-.pac-logo::after { display: none !important; }
+/* Style "Powered by Google" logo for dark mode */
+.pac-logo::after { background-color: var(--surf) !important; }
 [data-theme="light"] .pac-container { background: #fff !important; }
 [data-theme="light"] .pac-item:hover,
 [data-theme="light"] .pac-item-selected { background: rgba(59,92,204,.08) !important; }

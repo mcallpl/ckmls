@@ -123,7 +123,7 @@ header('Cache-Control: no-cache, must-revalidate');
                        name="full_address"
                        class="search-hero-input"
                        placeholder="e.g. 24312 Airporter Way, Laguna Niguel CA 92677"
-                       autocomplete="new-password"
+                       autocomplete="off"
                        spellcheck="false"
                        required>
                 <button type="button" id="clearBtn" class="search-clear" style="display:none">✕</button>
