@@ -41,8 +41,8 @@ function buildRecordsSection(data) {
     // Build a quick stats line from ATTOM data
     const statParts = [];
     if (attom && !attom._error) {
-        if (attom.bedrooms)   statParts.push(attom.bedrooms + ' bd');
-        if (attom.bathrooms)  statParts.push(attom.bathrooms + ' ba');
+        if (attom.bedrooms != null)  statParts.push(attom.bedrooms + ' bd');
+        if (attom.bathrooms != null) statParts.push(attom.bathrooms + ' ba');
         if (attom.gross_sqft) statParts.push(fmtNum(attom.gross_sqft) + ' sqft');
         if (attom.year_built) statParts.push('Built ' + attom.year_built);
         if (attom.lot_size_sqft) statParts.push(fmtNum(attom.lot_size_sqft) + ' sqft lot');
@@ -193,8 +193,8 @@ function buildTaxBlock(attom) {
 function buildPropertyDetailsBlock(attom) {
     if (!attom || attom._error) return '';
     const rows = [];
-    if (attom.bedrooms)       rows.push(['Bedrooms',   attom.bedrooms]);
-    if (attom.bathrooms)      rows.push(['Bathrooms',  attom.bathrooms]);
+    if (attom.bedrooms != null)  rows.push(['Bedrooms',   attom.bedrooms]);
+    if (attom.bathrooms != null) rows.push(['Bathrooms',  attom.bathrooms]);
     if (attom.gross_sqft)     rows.push(['Living Sq Ft', fmtNum(attom.gross_sqft)]);
     if (attom.lot_size_sqft)  rows.push(['Lot Sq Ft',  fmtNum(attom.lot_size_sqft)]);
     if (attom.stories)        rows.push(['Stories',    attom.stories]);

@@ -172,7 +172,8 @@ function fetchAttomData(
         'gross_sqft'       => $building['size']['bldgSize']
                            ?? ($building['size']['livingsize']       ?? null),
         'bedrooms'         => $building['rooms']['beds']              ?? null,
-        'bathrooms'        => $building['rooms']['bathstotal']        ?? null,
+        'bathrooms'        => $building['rooms']['bathstotal']
+                           ?? ($building['rooms']['bathsfull']          ?? null),
         'stories'          => $building['summary']['levels']          ?? null,
         'heating'          => $building['interior']['heatingtype']    ?? '',
         'cooling'          => $building['interior']['coolingtype']    ?? '',
