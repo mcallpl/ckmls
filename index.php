@@ -248,14 +248,101 @@ clearBtn.addEventListener('click', () => {
 });
 
 /* =============================================================
-   Google Maps callback — map display only, no Places needed
+   Google Maps callback — init map + Places Autocomplete
    ============================================================= */
 function initGoogleMaps() {
     window._googleMapsReady = true;
+
+    // ── Places Autocomplete on the address input ──
+    const input = document.getElementById('addrInput');
+    const autocomplete = new google.maps.places.Autocomplete(input, {
+        types: ['address'],
+        componentRestrictions: { country: 'us' },
+        fields: ['formatted_address', 'geometry']
+    });
+
+    // When user selects a suggestion, fill the input and auto-submit
+    autocomplete.addListener('place_changed', function() {
+        const place = autocomplete.getPlace();
+        if (place && place.formatted_address) {
+            input.value = place.formatted_address;
+            clearBtn.style.display = 'flex';
+
+            // Show Street View for the selected address
+            if (place.geometry && place.geometry.location) {
+                showStreetView(place.geometry.location);
+            }
+
+            // Auto-submit the search
+            try { syncForm(); } catch(ex) {}
+            document.getElementById('searchForm').requestSubmit();
+        }
+    });
+
+    // Prevent form submit on Enter when autocomplete dropdown is open
+    input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            // If the pac-container is visible, let autocomplete handle it
+            const pac = document.querySelector('.pac-container');
+            if (pac && pac.style.display !== 'none' && pac.querySelector('.pac-item-selected')) {
+                e.preventDefault();
+            }
+        }
+    });
+
     if (window._pendingMapCall) {
         window._pendingMapCall();
         window._pendingMapCall = null;
     }
+}
+
+// ── Street View ──
+function showStreetView(location) {
+    let container = document.getElementById('streetview-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'streetview-container';
+        container.innerHTML = `
+            <div class="streetview-header">
+                <span class="streetview-icon">🏠</span>
+                <span class="streetview-label">Street View</span>
+            </div>
+            <div id="streetview-pano"></div>
+            <div id="streetview-nodata" class="streetview-nodata" style="display:none">
+                No Street View available for this location
+            </div>`;
+    }
+    // Store it globally so renderResults can place it
+    window._streetViewContainer = container;
+    window._streetViewLocation  = location;
+    renderStreetViewPano(location, container);
+}
+
+function renderStreetViewPano(location, container) {
+    const panoEl  = container.querySelector('#streetview-pano');
+    const noData  = container.querySelector('#streetview-nodata');
+    panoEl.style.display  = 'block';
+    noData.style.display  = 'none';
+
+    const sv = new google.maps.StreetViewService();
+    sv.getPanorama({ location: location, radius: 50 }, function(data, status) {
+        if (status === google.maps.StreetViewStatus.OK) {
+            panoEl.style.display = 'block';
+            noData.style.display = 'none';
+            new google.maps.StreetViewPanorama(panoEl, {
+                position: data.location.latLng,
+                pov: { heading: google.maps.geometry.spherical.computeHeading(data.location.latLng, location), pitch: 5 },
+                zoom: 1,
+                addressControl: false,
+                fullscreenControl: true,
+                motionTrackingControl: false,
+                linksControl: false
+            });
+        } else {
+            panoEl.style.display  = 'none';
+            noData.style.display  = 'block';
+        }
+    });
 }
 
 /* =============================================================
@@ -278,7 +365,7 @@ function initGoogleMaps() {
 </script>
 
 <script
-    src="https://maps.googleapis.com/maps/api/js?key=<?= GOOGLE_MAPS_API_KEY ?>&libraries=geometry&callback=initGoogleMaps"
+    src="https://maps.googleapis.com/maps/api/js?key=<?= GOOGLE_MAPS_API_KEY ?>&libraries=geometry,places&callback=initGoogleMaps"
     async defer>
 </script>
 

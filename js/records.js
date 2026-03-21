@@ -3,6 +3,33 @@
    ============================================================ */
 
 function buildRecordsSection(data) {
+    const outer = document.createElement('div');
+
+    // ── Street View panorama above records ──
+    if (data.geocoded && data.geocoded.lat && data.geocoded.lng) {
+        const loc = new google.maps.LatLng(parseFloat(data.geocoded.lat), parseFloat(data.geocoded.lng));
+        const svContainer = document.createElement('div');
+        svContainer.id = 'streetview-container';
+        svContainer.innerHTML = `
+            <div class="streetview-header">
+                <span class="streetview-icon">🏠</span>
+                <span class="streetview-label">Street View</span>
+            </div>
+            <div id="streetview-pano"></div>
+            <div id="streetview-nodata" class="streetview-nodata" style="display:none">
+                No Street View available for this location
+            </div>`;
+        outer.appendChild(svContainer);
+        // Render the pano after element is in the DOM
+        setTimeout(() => {
+            if (typeof renderStreetViewPano === 'function') {
+                renderStreetViewPano(loc, svContainer);
+            }
+        }, 100);
+    } else if (window._streetViewContainer) {
+        outer.appendChild(window._streetViewContainer);
+    }
+
     const wrap = document.createElement('div');
     wrap.className = 'records-section';
 
@@ -39,7 +66,8 @@ function buildRecordsSection(data) {
     if (linksHtml) body.appendChild(createEl(linksHtml));
 
     wrap.appendChild(body);
-    return wrap;
+    outer.appendChild(wrap);
+    return outer;
 }
 
 function createEl(html) {
