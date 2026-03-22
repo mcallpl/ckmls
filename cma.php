@@ -588,7 +588,7 @@ foreach ($recipients as $r) {
     }
 }
 
-$diagInfo = "Size: {$emailSizeKB}KB, {$propCount} comps";
+$diagInfo = "Size: {$emailSizeKB}KB, {$propCount} comps, From: {$envelopeFrom}";
 
 echo json_encode([
     'success' => count($sent) > 0,
