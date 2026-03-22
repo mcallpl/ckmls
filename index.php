@@ -159,25 +159,6 @@ header('Cache-Control: no-cache, must-revalidate');
 <script src="js/app.js?v=<?=$cacheBust?>"></script>
 <script src="js/map.js?v=<?=$cacheBust?>"></script>
 <script>
-/* Fix the result count display — watches for #result-count and rewrites it.
-   This works even if the browser has cached old JS that sets it directly. */
-(function() {
-    var observer = new MutationObserver(function() {
-        var el = document.getElementById('result-count');
-        if (!el) return;
-        if (el.dataset.fixed) return; /* already fixed */
-        if (typeof appData === 'undefined' || !appData) return;
-
-        var showing = appData.properties ? appData.properties.length : 0;
-        {
-            el.innerHTML = '<strong>' + showing.toLocaleString() + '</strong> home' + (showing !== 1 ? 's' : '');
-        }
-        el.dataset.fixed = '1';
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
-})();
-</script>
-<script>
 /* =============================================================
    Inline UI logic — pills, selects, address clear button
    app.js handles: loader, fetch, render, sorting, cards

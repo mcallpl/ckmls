@@ -55,11 +55,6 @@ function buildSortBar(count, totalCount) {
         bar.appendChild(btn);
     });
 
-    const countEl = document.createElement('span');
-    countEl.className = 'result-count';
-    countEl.id = 'result-count';
-    updateResultCount(countEl, count, totalCount);
-    bar.appendChild(countEl);
     return bar;
 }
 

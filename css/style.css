@@ -723,8 +723,10 @@ input::placeholder { color: var(--mut2); }
 }
 .selected-count {
     font-family: 'Syne', sans-serif; font-size: .72rem; font-weight: 700;
-    color: var(--acc2); letter-spacing: .06em; margin-left: auto;
+    letter-spacing: .06em; margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; gap: 2px;
 }
+.count-selected { color: var(--acc2); }
+.count-total { color: var(--muted); font-size: .65rem; font-weight: 600; }
 
 /* Card checkbox (top-right of photo) */
 .card-cb-wrap {

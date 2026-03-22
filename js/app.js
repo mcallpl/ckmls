@@ -75,9 +75,13 @@ function updateSelectAllToggle() {
 function updateSelectedCount() {
     const el = document.getElementById('selected-count');
     if (!el) return;
-    const count = selectedHomes.size;
-    el.textContent = count > 0 ? count + ' selected' : '';
-    el.style.display = count > 0 ? 'inline' : 'none';
+    // Count only checked homes that are currently visible (pass filters)
+    const filtered = applyFilters(appData?.properties || []);
+    const checkedCount = filtered.filter(p => selectedHomes.has(getPropKey(p))).length;
+    const totalFiltered = filtered.length;
+    el.innerHTML = `<span class="count-selected">${checkedCount} selected</span>`
+        + `<span class="count-total">${totalFiltered} home${totalFiltered !== 1 ? 's' : ''} listed</span>`;
+    el.style.display = 'inline';
 }
 
 function buildSelectionBar() {

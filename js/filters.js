@@ -273,9 +273,6 @@ function applyFiltersAndRender() {
     const filtered = applyFilters(appData.properties);
     const sorted   = getSortedProperties(filtered, currentSort);
 
-    const countEl = document.getElementById('result-count');
-    if (countEl) updateResultCount(countEl, filtered.length, appTotalCount);
-
     if (typeof window.updateMapMarkers === 'function') {
         window.updateMapMarkers(sorted);
     }
