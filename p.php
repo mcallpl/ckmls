@@ -62,6 +62,20 @@ $photos    = $prop['_photos'] ?? [];
 $photo     = $prop['_photo'] ?? '';
 if (!$photos && $photo) $photos = [$photo];
 
+// If we only have 1 photo but have a ListingKey, fetch all photos from MLS
+if (count($photos) <= 1 && !empty($prop['ListingKey'])) {
+    require_once __DIR__ . '/lib/auth.php';
+    require_once __DIR__ . '/lib/api.php';
+    require_once __DIR__ . '/lib/search_lib.php';
+    $allPhotos = getPhotosForListing($prop['ListingKey'], 50);
+    if (count($allPhotos) > 1) {
+        $scheme  = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $baseUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost')
+                   . rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\') . '/photo.php?url=';
+        $photos = array_map(fn($m) => $baseUrl . urlencode($m['MediaURL'] ?? ''), $allPhotos);
+    }
+}
+
 // Status badge colors
 $statusColors = [
     'Active'                => ['bg'=>'#d1fae5','text'=>'#065f46'],
