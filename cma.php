@@ -551,7 +551,6 @@ $htmlEmail = '<!DOCTYPE html>
 </body></html>';
 
 // ── 3. Send email ─────────────────────────────────────────────────
-require_once __DIR__ . '/lib/smtp.php';
 
 $errors  = [];
 $sent    = [];
@@ -561,65 +560,38 @@ $subject = $emailSubject ?: "Your CMA — {$subjectAddr}";
 $emailSize = strlen($htmlEmail);
 $emailSizeKB = round($emailSize / 1024, 1);
 
-// SMTP config (set in config.local.php)
-$useSmtp = defined('SMTP_HOST') && SMTP_HOST && defined('SMTP_USER') && SMTP_USER && defined('SMTP_PASS') && SMTP_PASS;
-
-$fromEmail = $sigEmail ?: (defined('AGENT_EMAIL') ? AGENT_EMAIL : 'Chip@chipandkim.com');
-$fromName  = $sigName  ?: (defined('AGENT_NAME')  ? AGENT_NAME  : 'Chip McAllister');
+// Send from the HOSTING domain (peoplestar.com) so GoDaddy's mail relay
+// authenticates properly (SPF/DKIM). Reply-To goes to the agent's real email.
+$envelopeFrom = 'noreply@peoplestar.com';
+$replyTo      = $sigEmail ?: (defined('AGENT_EMAIL') ? AGENT_EMAIL : 'Chip@chipandkim.com');
+$fromName     = $sigName  ?: (defined('AGENT_NAME')  ? AGENT_NAME  : 'Chip McAllister');
 
 foreach ($recipients as $r) {
     $toEmail = filter_var(trim($r['email'] ?? ''), FILTER_VALIDATE_EMAIL);
     $toName  = trim($r['name'] ?? '');
     if (!$toEmail) { $errors[] = "Invalid email: ".($r['email']??''); continue; }
 
-    if ($useSmtp) {
-        // ── SMTP delivery (reliable) ──────────────────────────
-        $result = smtp_send([
-            'host'     => SMTP_HOST,
-            'port'     => defined('SMTP_PORT') ? (int)SMTP_PORT : 587,
-            'user'     => SMTP_USER,
-            'pass'     => SMTP_PASS,
-            'from'     => defined('SMTP_FROM') && SMTP_FROM ? SMTP_FROM : SMTP_USER,
-            'fromName' => $fromName,
-            'to'       => $toEmail,
-            'toName'   => $toName,
-            'subject'  => $subject,
-            'html'     => $htmlEmail,
-            'replyTo'  => $fromEmail,
-        ]);
+    $cleanName = str_replace(['"',"'"], '', $fromName);
+    $toHeader  = $toEmail;
+    $headers  = "MIME-Version: 1.0\r\n";
+    $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+    $headers .= "From: \"{$cleanName}\" <{$envelopeFrom}>\r\n";
+    $headers .= "Reply-To: {$replyTo}\r\n";
 
-        if ($result['success']) {
-            $sent[] = $toEmail;
-        } else {
-            $errors[] = "SMTP to {$toEmail}: " . ($result['error'] ?? 'unknown error');
-        }
+    $mailResult = @mail($toHeader, $subject, $htmlEmail, $headers, "-f {$envelopeFrom}");
+    if (!$mailResult) {
+        $mailResult = @mail($toHeader, $subject, $htmlEmail, $headers);
+    }
 
+    if ($mailResult) {
+        $sent[] = $toEmail;
     } else {
-        // ── Fallback: PHP mail() ──────────────────────────────
-        $cleanName = str_replace(['"',"'"], '', $fromName);
-        $toHeader  = $toEmail;
-        $headers  = "MIME-Version: 1.0\r\n";
-        $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
-        $headers .= "From: \"{$cleanName}\" <{$fromEmail}>\r\n";
-        $headers .= "Reply-To: {$fromEmail}\r\n";
-        $headers .= "X-Mailer: MLS-CMA/5.0\r\n";
-
-        $mailResult = @mail($toHeader, $subject, $htmlEmail, $headers, "-f {$fromEmail}");
-        if (!$mailResult) {
-            $mailResult = @mail($toHeader, $subject, $htmlEmail, $headers);
-        }
-
-        if ($mailResult) {
-            $sent[] = $toEmail;
-        } else {
-            $err = error_get_last();
-            $errors[] = "Failed to send to {$toEmail}".($err ? ': '.$err['message'] : ' (mail() returned false — configure SMTP for reliable delivery)');
-        }
+        $err = error_get_last();
+        $errors[] = "Failed to send to {$toEmail}".($err ? ': '.$err['message'] : ' (mail() returned false)');
     }
 }
 
-$method = $useSmtp ? 'SMTP ('.SMTP_HOST.')' : 'PHP mail()';
-$diagInfo = "Via: {$method}, size: {$emailSizeKB}KB, {$propCount} comps";
+$diagInfo = "Size: {$emailSizeKB}KB, {$propCount} comps";
 
 echo json_encode([
     'success' => count($sent) > 0,
