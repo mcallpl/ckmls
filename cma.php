@@ -630,6 +630,9 @@ foreach ($recipients as $r) {
         $mailResult = @mail($toEmail, $subject, $htmlEmail, $headers);
     }
 
+    // Save the full email for debugging — compare working vs non-working
+    @file_put_contents(__DIR__ . '/data/last_email.html', $htmlEmail);
+
     // Log every send attempt
     @file_put_contents(__DIR__ . '/data/email_log.txt',
         date('Y-m-d H:i:s') . " | {$method} | To: {$toEmail} | Subject: {$subject} | Size: {$emailSizeKB}KB | result=" . ($mailResult ? 'true' : 'false') . " | From: {$fromEmail}\n",
