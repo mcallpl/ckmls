@@ -511,7 +511,9 @@ async function sendFinalCma() {
                     </div>
                 </div>`;
         } else {
-            alert('Send failed: ' + (data.message || data.error));
+            const errMsg = data.message || data.error || 'Unknown error';
+            const errDetails = data.errors?.length ? '\n\nDetails:\n' + data.errors.join('\n') : '';
+            alert('Send failed: ' + errMsg + errDetails);
         }
     } catch(err) {
         alert('Error: ' + err.message);

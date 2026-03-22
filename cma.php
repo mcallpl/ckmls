@@ -551,6 +551,8 @@ $htmlEmail = '<!DOCTYPE html>
 </body></html>';
 
 // ── 3. Send email ─────────────────────────────────────────────────
+require_once __DIR__ . '/lib/smtp.php';
+
 $errors  = [];
 $sent    = [];
 $subject = $emailSubject ?: "Your CMA — {$subjectAddr}";
@@ -559,44 +561,65 @@ $subject = $emailSubject ?: "Your CMA — {$subjectAddr}";
 $emailSize = strlen($htmlEmail);
 $emailSizeKB = round($emailSize / 1024, 1);
 
+// SMTP config (set in config.local.php)
+$useSmtp = defined('SMTP_HOST') && SMTP_HOST && defined('SMTP_USER') && SMTP_USER && defined('SMTP_PASS') && SMTP_PASS;
+
+$fromEmail = $sigEmail ?: (defined('AGENT_EMAIL') ? AGENT_EMAIL : 'Chip@chipandkim.com');
+$fromName  = $sigName  ?: (defined('AGENT_NAME')  ? AGENT_NAME  : 'Chip McAllister');
+
 foreach ($recipients as $r) {
     $toEmail = filter_var(trim($r['email'] ?? ''), FILTER_VALIDATE_EMAIL);
     $toName  = trim($r['name'] ?? '');
     if (!$toEmail) { $errors[] = "Invalid email: ".($r['email']??''); continue; }
 
-    $html = $htmlEmail;
+    if ($useSmtp) {
+        // ── SMTP delivery (reliable) ──────────────────────────
+        $result = smtp_send([
+            'host'     => SMTP_HOST,
+            'port'     => defined('SMTP_PORT') ? (int)SMTP_PORT : 587,
+            'user'     => SMTP_USER,
+            'pass'     => SMTP_PASS,
+            'from'     => defined('SMTP_FROM') && SMTP_FROM ? SMTP_FROM : SMTP_USER,
+            'fromName' => $fromName,
+            'to'       => $toEmail,
+            'toName'   => $toName,
+            'subject'  => $subject,
+            'html'     => $htmlEmail,
+            'replyTo'  => $fromEmail,
+        ]);
 
-    $fromEmail = $sigEmail ?: (defined('AGENT_EMAIL') ? AGENT_EMAIL : 'Chip@chipandkim.com');
-    $fromName  = $sigName  ?: (defined('AGENT_NAME')  ? AGENT_NAME  : 'Chip McAllister');
-    $cleanName = str_replace(['"',"'"], '', $fromName);
+        if ($result['success']) {
+            $sent[] = $toEmail;
+        } else {
+            $errors[] = "SMTP to {$toEmail}: " . ($result['error'] ?? 'unknown error');
+        }
 
-    // Simple to-header — avoid complex quoting that can cause delivery issues
-    $toHeader  = $toEmail;
-
-    $headers  = "MIME-Version: 1.0\r\n";
-    $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
-    $headers .= "From: \"{$cleanName}\" <{$fromEmail}>\r\n";
-    $headers .= "Reply-To: {$fromEmail}\r\n";
-    $headers .= "X-Mailer: MLS-CMA/5.0\r\n";
-
-    // Try sending with -f envelope sender first, then without if it fails
-    $mailResult = @mail($toHeader, $subject, $html, $headers, "-f {$fromEmail}");
-
-    if (!$mailResult) {
-        // Retry without -f flag (some servers reject it)
-        $mailResult = @mail($toHeader, $subject, $html, $headers);
-    }
-
-    if ($mailResult) {
-        $sent[] = $toEmail;
     } else {
-        $err = error_get_last();
-        $errors[] = "Failed to send to {$toEmail}".($err ? ': '.$err['message'] : ' (mail() returned false)');
+        // ── Fallback: PHP mail() ──────────────────────────────
+        $cleanName = str_replace(['"',"'"], '', $fromName);
+        $toHeader  = $toEmail;
+        $headers  = "MIME-Version: 1.0\r\n";
+        $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+        $headers .= "From: \"{$cleanName}\" <{$fromEmail}>\r\n";
+        $headers .= "Reply-To: {$fromEmail}\r\n";
+        $headers .= "X-Mailer: MLS-CMA/5.0\r\n";
+
+        $mailResult = @mail($toHeader, $subject, $htmlEmail, $headers, "-f {$fromEmail}");
+        if (!$mailResult) {
+            $mailResult = @mail($toHeader, $subject, $htmlEmail, $headers);
+        }
+
+        if ($mailResult) {
+            $sent[] = $toEmail;
+        } else {
+            $err = error_get_last();
+            $errors[] = "Failed to send to {$toEmail}".($err ? ': '.$err['message'] : ' (mail() returned false — configure SMTP for reliable delivery)');
+        }
     }
 }
 
-// If mail() returned true but email might not arrive, add diagnostic info
-$diagInfo = "Email size: {$emailSizeKB}KB, {$propCount} comps";
+$method = $useSmtp ? 'SMTP ('.SMTP_HOST.')' : 'PHP mail()';
+$diagInfo = "Via: {$method}, size: {$emailSizeKB}KB, {$propCount} comps";
 
 echo json_encode([
     'success' => count($sent) > 0,
