@@ -362,11 +362,32 @@ $statusColors = [
     'Expired'               => ['bg'=>'#f3f4f6','text'=>'#374151'],
 ];
 
-// ── Property comp rows ───────────────────────────────────────────
+// ── Save property data + build comp rows ─────────────────────────
+$dataDir = __DIR__ . '/data';
+if (!is_dir($dataDir)) @mkdir($dataDir, 0755, true);
+$baseDetailUrl = rtrim($siteUrl ?: 'https://peoplestar.com/ckmls/', '/');
+
 $propRows = '';
 $compNum = 0;
 foreach ($properties as $p) {
     $compNum++;
+
+    // Save property data for public detail page
+    $detailKey = bin2hex(random_bytes(6));
+    $detailPayload = [
+        'property'  => $p,
+        'attom'     => $subjectAttom,
+        'agent'     => [
+            'name' => $sigName, 'title' => $sigTitle, 'license' => $sigLicense,
+            'email' => $sigEmail, 'phone' => $sigPhone, 'website' => $sigWebsite,
+            'photo' => $sigPhoto, 'team' => defined('AGENT_TEAM_NAME') ? AGENT_TEAM_NAME : '',
+            'brokerage' => $sigBroker, 'logo' => $sigLogo,
+        ],
+        'created_at' => date('c'),
+    ];
+    @file_put_contents("$dataDir/$detailKey.json", json_encode($detailPayload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+    $detailUrl = $baseDetailUrl . '/p.php?k=' . $detailKey;
+
     $status   = $p['StandardStatus'] ?? 'Unknown';
     $sc       = $statusColors[$status] ?? ['bg'=>'#f3f4f6','text'=>'#374151'];
     $isClosed = $status === 'Closed';
@@ -414,6 +435,7 @@ foreach ($properties as $p) {
         : '';
 
     $propRows .= '
+    <a href="'.htmlspecialchars($detailUrl).'" target="_blank" style="text-decoration:none;color:inherit;display:block;">
     <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb;box-shadow:0 4px 16px rgba(0,0,0,.08);">
         <tr><td>'.$photoHtml.'</td></tr>
         <tr><td style="padding:16px 18px;background:#fff;">
@@ -437,13 +459,12 @@ foreach ($properties as $p) {
                 </tr>
             </table>
         </td></tr>
-    </table>';
+    </table>
+    </a>';
 }
 
-// CTA button
-$ctaHtml = $siteUrl
-    ? '<a href="'.htmlspecialchars($siteUrl).'" style="display:inline-block;padding:13px 32px;background:#4f46e5;color:#fff;font-size:14px;font-weight:700;text-decoration:none;border-radius:8px;">Explore Full Report Online</a>'
-    : '';
+// No CTA link to the app — it will be password protected
+$ctaHtml = '';
 
 // Headshot
 $headshotHtml = $sigPhoto
