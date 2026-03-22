@@ -284,9 +284,6 @@ function fmtD($s) {
             <?php if ($sqft && $price): ?>
             <div><div class="detail-item-label">Price / Sq Ft</div><div class="detail-item-val">$<?= number_format($price / (float)$sqft) ?></div></div>
             <?php endif; ?>
-            <?php if ($agent_name_listing): ?>
-            <div><div class="detail-item-label">Listing Agent</div><div class="detail-item-val"><?= htmlspecialchars($agent_name_listing) ?></div></div>
-            <?php endif; ?>
             <?php if (!empty($prop['ListingContractDate'])): ?>
             <div><div class="detail-item-label">Listed</div><div class="detail-item-val"><?= fmtD($prop['ListingContractDate']) ?></div></div>
             <?php endif; ?>
