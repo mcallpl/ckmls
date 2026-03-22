@@ -408,11 +408,51 @@ foreach ($properties as $p) {
     $yr       = $p['YearBuilt']    ?? '—';
     $dom      = $p['DaysOnMarket'] ?? null;
     $dist     = isset($p['_distance']) ? round((float)$p['_distance'],2).' mi' : '';
-    // Use absolute proxy URL so email clients load photos through our server (which adds the OAuth token)
-    $emailPhoto = $photo;
-    if ($emailPhoto && strpos($emailPhoto, 'http') !== 0) {
-        // Relative URL like "photo.php?url=..." → make absolute
-        $emailPhoto = rtrim($siteUrl ?: '', '/') . '/' . ltrim($emailPhoto, '/');
+
+    // Cache photo as a static file so email clients load a fast, reliable image
+    // (proxy URLs through photo.php require OAuth + MLS API calls that email clients timeout on)
+    $emailPhoto = '';
+    if ($photo) {
+        $photoDir = $dataDir . '/photos';
+        if (!is_dir($photoDir)) @mkdir($photoDir, 0755, true);
+
+        // Extract the raw MLS photo URL from the proxy URL
+        $rawPhotoUrl = '';
+        if (preg_match('/photo\.php\?url=(.+)$/i', $photo, $pm)) {
+            $rawPhotoUrl = urldecode($pm[1]);
+        }
+
+        if ($rawPhotoUrl) {
+            // Fetch photo server-side with OAuth token (same as photo.php does)
+            require_once __DIR__ . '/lib/auth.php';
+            try {
+                $token = getAccessToken();
+                $ch = curl_init($rawPhotoUrl);
+                curl_setopt_array($ch, [
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_TIMEOUT        => 15,
+                    CURLOPT_FOLLOWLOCATION => true,
+                    CURLOPT_MAXREDIRS      => 3,
+                    CURLOPT_HTTPHEADER     => [
+                        'Authorization: Bearer ' . $token,
+                        'Accept: image/jpeg, image/png, image/webp, image/*',
+                    ],
+                ]);
+                $imgData = curl_exec($ch);
+                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE) ?: 'image/jpeg';
+                curl_close($ch);
+
+                if ($imgData && $httpCode === 200 && strlen($imgData) > 100) {
+                    $ext = (strpos($contentType, 'png') !== false) ? 'png' : 'jpg';
+                    $photoFile = $detailKey . '_photo.' . $ext;
+                    @file_put_contents($photoDir . '/' . $photoFile, $imgData);
+                    $emailPhoto = rtrim($siteUrl ?: '', '/') . '/data/photos/' . $photoFile;
+                }
+            } catch (Exception $e) {
+                // Silently fall back to no photo
+            }
+        }
     }
 
     $photoHtml = $emailPhoto

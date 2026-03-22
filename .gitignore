@@ -13,3 +13,4 @@ deploy*.sh
 # Editor
 .vscode/
 data/*.json
+data/photos/
