@@ -64,11 +64,6 @@ var PhotoGallery = (function() {
         };
         wrap.appendChild(img);
 
-        // Single photo — no controls needed
-        if (photos.length < 2) {
-            return { el: wrap };
-        }
-
         // Generate unique ID
         var uid = 'pg_' + Math.random().toString(36).slice(2, 10);
         _store[uid] = { photos: photos, idx: 0, img: img, counter: null };
