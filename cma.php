@@ -59,6 +59,20 @@ $agentPhone = trim($input['agent_phone'] ?? '') ?: (defined('AGENT_PHONE') ? AGE
 if (!$previewOnly && empty($recipients)) {
     echo json_encode(['success'=>false,'error'=>'Please enter the recipient email address.']); exit;
 }
+
+// Always send a copy to the agent
+if (!$previewOnly && $agentEmail) {
+    $agentAlreadyIncluded = false;
+    foreach ($recipients as $r) {
+        if (strcasecmp(trim($r['email'] ?? ''), $agentEmail) === 0) {
+            $agentAlreadyIncluded = true;
+            break;
+        }
+    }
+    if (!$agentAlreadyIncluded) {
+        $recipients[] = ['name' => $agentName, 'email' => $agentEmail];
+    }
+}
 if (empty($properties)) {
     echo json_encode(['success'=>false,'error'=>'No properties received. Please select comps and try again.']); exit;
 }
