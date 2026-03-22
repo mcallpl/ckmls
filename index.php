@@ -158,6 +158,7 @@ var AGENT_EMAIL = <?= json_encode(defined('AGENT_EMAIL') ? AGENT_EMAIL : '') ?>;
 </script>
 <script src="js/sort.js?v=<?=$cacheBust?>"></script>
 <script src="js/filters.js?v=<?=$cacheBust?>"></script>
+<script src="js/photo-gallery.js?v=<?=$cacheBust?>"></script>
 <script src="js/cards.js?v=<?=$cacheBust?>"></script>
 <script src="js/records.js?v=<?=$cacheBust?>"></script>
 <script src="js/cma.js?v=<?=$cacheBust?>"></script>

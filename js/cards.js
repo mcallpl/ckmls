@@ -2,8 +2,6 @@
    cards.js — Property card rendering
    ============================================================ */
 
-const _photoStore = {};
-
 function renderCards(props) {
     const wrap = document.getElementById('cards-container');
     if (!wrap) return;
@@ -18,7 +16,7 @@ function renderCards(props) {
     props.forEach((prop, idx) => wrap.appendChild(buildCard(prop, idx)));
 }
 
-// ── Photo section ─────────────────────────────────────────────────
+// ── Photo section (uses PhotoGallery module) ──────────────────────
 function buildPhotoSection(prop, cardIdx) {
     const outer = document.createElement('div');
     outer.style.cssText = 'position:relative;width:100%;';
@@ -32,66 +30,8 @@ function buildPhotoSection(prop, cardIdx) {
     const photos = prop._photos && prop._photos.length ? prop._photos
                  : prop._photo ? [prop._photo] : [];
 
-    const wrap = document.createElement('div');
-    wrap.className = 'pc-wrap';
-    outer.appendChild(wrap);
-
-    if (!photos.length) {
-        wrap.classList.add('no-photo');
-        const icon = document.createElement('div');
-        icon.textContent = '🏠';
-        icon.className = 'np-icon';
-        wrap.appendChild(icon);
-        return outer;
-    }
-
-    // Image
-    const img = document.createElement('img');
-    img.src = photos[0];
-    img.alt = 'Property photo';
-    img.loading = 'lazy';
-    img.className = 'pc-img';
-    wrap.appendChild(img);
-
-    if (photos.length < 2) return outer;
-
-    // Store for cycling
-    const uid = 'p' + Math.random().toString(36).slice(2,8);
-    _photoStore[uid] = { photos, idx: 0, img };
-
-    // Prev button
-    const prev = document.createElement('button');
-    prev.className = 'pc-prev';
-    prev.innerHTML = '&#8249;';
-    prev.title = 'Previous photo';
-    prev.onclick = function(e) { e.stopPropagation(); photoStep(uid, -1); };
-    wrap.appendChild(prev);
-
-    // Next button
-    const next = document.createElement('button');
-    next.className = 'pc-next';
-    next.innerHTML = '&#8250;';
-    next.title = 'Next photo';
-    next.onclick = function(e) { e.stopPropagation(); photoStep(uid, 1); };
-    wrap.appendChild(next);
-
-    // Counter
-    const ctr = document.createElement('div');
-    ctr.className = 'pc-count';
-    ctr.innerHTML = '<span class="pc-cur">1</span> / ' + photos.length;
-    _photoStore[uid].counter = ctr;
-    wrap.appendChild(ctr);
-
+    PhotoGallery.create(outer, photos, { lazy: true, showCounter: true });
     return outer;
-}
-
-function photoStep(uid, dir) {
-    const s = _photoStore[uid];
-    if (!s) return;
-    s.idx = (s.idx + dir + s.photos.length) % s.photos.length;
-    s.img.src = s.photos[s.idx];
-    const cur = s.counter ? s.counter.querySelector('.pc-cur') : null;
-    if (cur) cur.textContent = s.idx + 1;
 }
 
 // ── Card ─────────────────────────────────────────────────────────
