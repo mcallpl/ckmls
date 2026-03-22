@@ -42,6 +42,10 @@ $editedNarrative = trim($input['edited_narrative']  ?? '');
 $subjectAddr     = trim($input['subject_address']   ?? '');
 $emailSubject    = trim($input['email_subject']     ?? '');
 $siteUrl         = trim($input['site_url']          ?? '');
+if (!$siteUrl) {
+    $scheme  = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $siteUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\') . '/';
+}
 $previewOnly     = !empty($input['preview_only']);
 $subjectAttom    = $input['subject_attom']    ?? null;
 $recipientFirst  = trim($input['recipient_first']  ?? '');
@@ -365,7 +369,7 @@ $statusColors = [
 // ── Save property data + build comp rows ─────────────────────────
 $dataDir = __DIR__ . '/data';
 if (!is_dir($dataDir)) @mkdir($dataDir, 0755, true);
-$baseDetailUrl = rtrim($siteUrl ?: 'https://peoplestar.com/ckmls/', '/');
+$baseDetailUrl = rtrim($siteUrl ?: '', '/');
 
 $propRows = '';
 $compNum = 0;
@@ -405,7 +409,7 @@ foreach ($properties as $p) {
     $emailPhoto = $photo;
     if ($emailPhoto && strpos($emailPhoto, 'http') !== 0) {
         // Relative URL like "photo.php?url=..." → make absolute
-        $emailPhoto = rtrim($siteUrl ?: 'https://peoplestar.com/ckmls/', '/') . '/' . ltrim($emailPhoto, '/');
+        $emailPhoto = rtrim($siteUrl ?: '', '/') . '/' . ltrim($emailPhoto, '/');
     }
 
     $photoHtml = $emailPhoto
