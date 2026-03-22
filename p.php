@@ -111,15 +111,16 @@ function fmtD($s) {
         body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; line-height: 1.6; }
         .container { max-width: 720px; margin: 0 auto; padding: 0 16px 60px; }
 
-        /* Photo gallery */
-        .gallery { position: relative; width: 100%; border-radius: var(--radius); overflow: hidden; background: var(--surf); margin-bottom: 24px; }
-        .gallery img { width: 100%; height: 420px; object-fit: cover; display: block; transition: opacity .25s; }
-        .gallery-placeholder { width: 100%; height: 300px; display: flex; align-items: center; justify-content: center; font-size: 4rem; color: var(--mut2); background: var(--surf2); }
-        .gallery-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,.55); color: #fff; border: none; width: 42px; height: 42px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; transition: background .2s; z-index: 2; }
-        .gallery-btn:hover { background: rgba(0,0,0,.8); }
-        .gallery-btn.prev { left: 12px; }
-        .gallery-btn.next { right: 12px; }
-        .gallery-counter { position: absolute; bottom: 12px; right: 12px; background: rgba(0,0,0,.6); color: #fff; padding: 4px 12px; border-radius: 20px; font-size: .75rem; font-weight: 600; z-index: 2; }
+        /* Photo gallery — matches app exactly */
+        .pc-wrap { position: relative; width: 100%; aspect-ratio: 4/3; overflow: hidden; background: var(--surf2); border-radius: var(--radius); margin-bottom: 24px; display: block; }
+        .pc-wrap.no-photo { display: flex; align-items: center; justify-content: center; }
+        .np-icon { font-size: 4rem; color: var(--mut2); }
+        .pc-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+        .pc-prev, .pc-next { position: absolute; top: 0; bottom: 0; width: 48px; background: rgba(0,0,0,.52); color: #fff; border: none; font-size: 2rem; font-weight: 400; line-height: 1; cursor: pointer; z-index: 15; display: flex; align-items: center; justify-content: center; transition: background .15s; padding: 0; user-select: none; }
+        .pc-prev { left: 0; border-radius: var(--radius) 0 0 var(--radius); }
+        .pc-next { right: 0; border-radius: 0 var(--radius) var(--radius) 0; }
+        .pc-prev:hover, .pc-next:hover { background: rgba(0,0,0,.78); }
+        .pc-count { position: absolute; bottom: 9px; right: 10px; background: rgba(0,0,0,.62); color: #fff; font-size: .68rem; font-family: 'Syne', sans-serif; font-weight: 600; padding: 2px 9px; border-radius: 100px; z-index: 15; pointer-events: none; letter-spacing: .04em; }
 
         /* Header */
         .prop-header { margin-bottom: 28px; }
@@ -172,7 +173,8 @@ function fmtD($s) {
         .footer { margin-top: 40px; padding: 20px 0; border-top: 1px solid var(--bord); text-align: center; font-size: .72rem; color: var(--mut2); line-height: 1.7; }
 
         @media (max-width: 600px) {
-            .gallery img { height: 260px; }
+            .pc-wrap { aspect-ratio: 4/3; }
+            .pc-prev, .pc-next { width: 36px; font-size: 1.6rem; }
             .prop-addr { font-size: 1.3rem; }
             .prop-price { font-size: 1.5rem; }
             .stats-bar { flex-wrap: wrap; }
@@ -186,17 +188,17 @@ function fmtD($s) {
 
 <div class="container" style="padding-top:32px;">
 
-    <!-- Photo Gallery -->
-    <div class="gallery" id="gallery">
+    <!-- Photo Gallery — same as app -->
+    <div class="pc-wrap<?= count($photos) === 0 ? ' no-photo' : '' ?>">
         <?php if (count($photos) > 0): ?>
-            <img id="galleryImg" src="<?= htmlspecialchars($photos[0]) ?>" alt="<?= htmlspecialchars($addr) ?>">
+            <img id="pcImg" class="pc-img" src="<?= htmlspecialchars($photos[0]) ?>" alt="<?= htmlspecialchars($addr) ?>">
             <?php if (count($photos) > 1): ?>
-                <button class="gallery-btn prev" onclick="galleryNav(-1)">&lsaquo;</button>
-                <button class="gallery-btn next" onclick="galleryNav(1)">&rsaquo;</button>
-                <div class="gallery-counter" id="galleryCounter">1 / <?= count($photos) ?></div>
+                <button class="pc-prev" onclick="photoStep(-1)">&#8249;</button>
+                <button class="pc-next" onclick="photoStep(1)">&#8250;</button>
+                <div class="pc-count"><span id="pcCur">1</span> / <?= count($photos) ?></div>
             <?php endif; ?>
         <?php else: ?>
-            <div class="gallery-placeholder">🏠</div>
+            <div class="np-icon">🏠</div>
         <?php endif; ?>
     </div>
 
@@ -368,10 +370,10 @@ function fmtD($s) {
 <script>
 var photos = <?= json_encode($photos) ?>;
 var idx = 0;
-function galleryNav(dir) {
+function photoStep(dir) {
     idx = (idx + dir + photos.length) % photos.length;
-    document.getElementById('galleryImg').src = photos[idx];
-    document.getElementById('galleryCounter').textContent = (idx + 1) + ' / ' + photos.length;
+    document.getElementById('pcImg').src = photos[idx];
+    document.getElementById('pcCur').textContent = idx + 1;
 }
 </script>
 <?php endif; ?>
