@@ -22,6 +22,15 @@ $data  = json_decode(file_get_contents($file), true);
 $prop  = $data['property']  ?? [];
 $agent = $data['agent']     ?? [];
 
+// Load CMA group data (all comps from the same email) for thumbnail strip
+$groupId   = $data['group_id'] ?? '';
+$groupFile = __DIR__ . "/data/group_$groupId.json";
+$group     = ($groupId && file_exists($groupFile))
+    ? json_decode(file_get_contents($groupFile), true)
+    : null;
+$groupMembers    = $group['members'] ?? [];
+$subjectAddress  = $group['subject_address'] ?? '';
+
 // Property fields
 $addr      = trim(($prop['StreetNumber'] ?? '') . ' ' . ($prop['StreetName'] ?? ''));
 $cityLine  = implode(', ', array_filter([$prop['City'] ?? '', $prop['StateOrProvince'] ?? ''])) . ' ' . ($prop['PostalCode'] ?? '');
@@ -187,6 +196,23 @@ function fmtD($s) {
         /* Footer */
         .footer { margin-top: 40px; padding: 20px 0; border-top: 1px solid var(--bord); text-align: center; font-size: .72rem; color: var(--mut2); line-height: 1.7; }
 
+        /* Thumbnail strip — all comps from the CMA */
+        .thumb-strip { margin-bottom: 28px; }
+        .thumb-strip-title { font-family: 'Syne', sans-serif; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-bottom: 12px; }
+        .thumb-scroll { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
+        .thumb-scroll::-webkit-scrollbar { height: 4px; }
+        .thumb-scroll::-webkit-scrollbar-track { background: var(--surf2); border-radius: 2px; }
+        .thumb-scroll::-webkit-scrollbar-thumb { background: var(--bord2); border-radius: 2px; }
+        .thumb-card { flex: 0 0 auto; width: 130px; scroll-snap-align: start; border-radius: var(--radius-sm); overflow: hidden; border: 2px solid transparent; background: var(--surf); cursor: pointer; transition: border-color .2s, transform .15s; text-decoration: none; color: inherit; display: block; }
+        .thumb-card:hover { border-color: var(--bord2); transform: translateY(-2px); }
+        .thumb-card.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+        .thumb-img { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; background: var(--surf2); }
+        .thumb-no-img { width: 100%; aspect-ratio: 4/3; display: flex; align-items: center; justify-content: center; background: var(--surf2); font-size: 1.5rem; color: var(--mut2); }
+        .thumb-info { padding: 6px 8px; }
+        .thumb-addr { font-size: .65rem; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3; }
+        .thumb-price { font-size: .62rem; color: var(--accent); font-weight: 700; margin-top: 2px; }
+        .thumb-status { font-size: .55rem; text-transform: uppercase; letter-spacing: .04em; font-weight: 700; margin-top: 2px; }
+
         @media (max-width: 600px) {
             .pc-prev, .pc-next { width: 36px; font-size: 1.6rem; }
             #gallery-mount .pc-wrap { aspect-ratio: 4/3; }
@@ -196,12 +222,50 @@ function fmtD($s) {
             .stat { min-width: 33%; }
             .detail-grid { grid-template-columns: 1fr; }
             .agent-card { flex-direction: column; text-align: center; align-items: center; }
+            .thumb-card { width: 110px; }
         }
     </style>
 </head>
 <body>
 
 <div class="container" style="padding-top:32px;">
+
+    <!-- Thumbnail strip — all comps from this CMA -->
+    <?php if (count($groupMembers) > 1): ?>
+    <div class="thumb-strip">
+        <div class="thumb-strip-title"><?= $subjectAddress ? htmlspecialchars($subjectAddress) . ' — ' : '' ?>CMA Properties (<?= count($groupMembers) ?>)</div>
+        <div class="thumb-scroll">
+            <?php
+            $statusThumbColors = [
+                'Active'                => '#065f46',
+                'Coming Soon'           => '#5b21b6',
+                'Active Under Contract' => '#92400e',
+                'Pending'               => '#9a3412',
+                'Closed'                => '#991b1b',
+                'Canceled'              => '#374151',
+                'Expired'               => '#374151',
+            ];
+            foreach ($groupMembers as $m):
+                $isActive = ($m['key'] === $key);
+                $thumbPrice = $m['price'] ? '$' . number_format((float)$m['price']) : '';
+                $thumbColor = $statusThumbColors[$m['status'] ?? ''] ?? '#374151';
+            ?>
+            <a href="p.php?k=<?= htmlspecialchars($m['key']) ?>" class="thumb-card<?= $isActive ? ' active' : '' ?>">
+                <?php if ($m['photo']): ?>
+                    <img src="<?= htmlspecialchars($m['photo']) ?>" class="thumb-img" alt="<?= htmlspecialchars($m['addr']) ?>" loading="lazy">
+                <?php else: ?>
+                    <div class="thumb-no-img">🏠</div>
+                <?php endif; ?>
+                <div class="thumb-info">
+                    <div class="thumb-addr"><?= htmlspecialchars($m['addr']) ?></div>
+                    <?php if ($thumbPrice): ?><div class="thumb-price"><?= $thumbPrice ?></div><?php endif; ?>
+                    <div class="thumb-status" style="color:<?= $thumbColor ?>"><?= htmlspecialchars($m['status'] ?? '') ?></div>
+                </div>
+            </a>
+            <?php endforeach; ?>
+        </div>
+    </div>
+    <?php endif; ?>
 
     <!-- Photo Gallery — uses shared PhotoGallery module -->
     <div id="gallery-mount"></div>
@@ -212,6 +276,9 @@ function fmtD($s) {
         <?= json_encode($photos, JSON_UNESCAPED_SLASHES) ?>,
         { lazy: false, showCounter: true }
     );
+    // Scroll the active thumbnail into view
+    var activeThumb = document.querySelector('.thumb-card.active');
+    if (activeThumb) activeThumb.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
     </script>
 
     <!-- Header -->

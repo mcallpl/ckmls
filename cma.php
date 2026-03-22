@@ -391,6 +391,9 @@ $baseDetailUrl = rtrim($siteUrl ?: '', '/');
 
 $propRows = '';
 $compNum = 0;
+$groupId = bin2hex(random_bytes(6));   // shared ID linking all comps in this CMA
+$groupMembers = [];                     // collect {key, addr, photo, status, price} per comp
+
 foreach ($properties as $p) {
     $compNum++;
 
@@ -404,6 +407,7 @@ foreach ($properties as $p) {
             'photo' => $sigPhoto, 'team' => defined('AGENT_TEAM_NAME') ? AGENT_TEAM_NAME : '',
             'brokerage' => $sigBroker, 'logo' => $sigLogo,
         ],
+        'group_id'   => $groupId,
         'created_at' => date('c'),
     ];
     @file_put_contents("$dataDir/$detailKey.json", json_encode($detailPayload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
@@ -469,8 +473,18 @@ foreach ($properties as $p) {
         }
     }
 
+    // Track this comp for the group thumbnail strip on p.php
+    $compAddr = trim(($p['StreetNumber']??'').' '.($p['StreetName']??''));
+    $groupMembers[] = [
+        'key'    => $detailKey,
+        'addr'   => $compAddr,
+        'photo'  => $emailPhoto,      // cached static photo URL
+        'status' => $status,
+        'price'  => $price,
+    ];
+
     $photoHtml = $emailPhoto
-        ? '<img src="'.htmlspecialchars($emailPhoto).'" width="100%" style="display:block;width:100%;height:180px;object-fit:cover;border-radius:10px 10px 0 0;" alt="'.htmlspecialchars(trim(($p['StreetNumber']??'').' '.($p['StreetName']??''))).'">'
+        ? '<img src="'.htmlspecialchars($emailPhoto).'" width="100%" style="display:block;width:100%;height:180px;object-fit:cover;border-radius:10px 10px 0 0;" alt="'.htmlspecialchars($compAddr).'">'
         : '<div style="background:#e5e7eb;height:80px;border-radius:10px 10px 0 0;display:flex;align-items:center;justify-content:center;font-size:2rem;color:#9ca3af;">🏠</div>';
 
     $closedStrip = $isClosed ? '
@@ -523,6 +537,14 @@ foreach ($properties as $p) {
     </table>
     </a>';
 }
+
+// Save group file so p.php can show thumbnail strip of all comps in this CMA
+$groupPayload = [
+    'subject_address' => $subjectAddr,
+    'members'         => $groupMembers,
+    'created_at'      => date('c'),
+];
+@file_put_contents("$dataDir/group_$groupId.json", json_encode($groupPayload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
 
 // No CTA link to the app — it will be password protected
 $ctaHtml = '';
