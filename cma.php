@@ -572,17 +572,13 @@ foreach ($recipients as $r) {
     $toName  = trim($r['name'] ?? '');
     if (!$toEmail) { $errors[] = "Invalid email: ".($r['email']??''); continue; }
 
-    $cleanName = str_replace(['"',"'"], '', $fromName);
-    $toHeader  = $toEmail;
-    $headers  = "MIME-Version: 1.0\r\n";
+    // Match PropertyTourPics email format exactly (proven to deliver)
+    $headers  = "From: " . $fromName . " <" . $envelopeFrom . ">\r\n";
+    $headers .= "Reply-To: " . $envelopeFrom . "\r\n";
     $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
-    $headers .= "From: \"{$cleanName}\" <{$envelopeFrom}>\r\n";
-    $headers .= "Reply-To: {$replyTo}\r\n";
+    $headers .= "MIME-Version: 1.0\r\n";
 
-    $mailResult = @mail($toHeader, $subject, $htmlEmail, $headers, "-f {$envelopeFrom}");
-    if (!$mailResult) {
-        $mailResult = @mail($toHeader, $subject, $htmlEmail, $headers);
-    }
+    $mailResult = @mail($toEmail, $subject, $htmlEmail, $headers);
 
     if ($mailResult) {
         $sent[] = $toEmail;
