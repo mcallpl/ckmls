@@ -166,7 +166,9 @@ document.getElementById('searchForm').addEventListener('submit', async (e) => {
         appTotalCount = data.totalCount || null;
         appData.searchedAddress = addr.value.trim();
         renderResults(data);
-        initMap(data.geocoded, data.properties);
+        // Pass empty array to initMap — applyFiltersAndRender() handles markers
+        // so the map only ever shows filtered/visible homes
+        initMap(data.geocoded, []);
 
     } catch (err) {
         hideLoader();
