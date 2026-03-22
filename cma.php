@@ -380,10 +380,11 @@ foreach ($properties as $p) {
     $yr       = $p['YearBuilt']    ?? '—';
     $dom      = $p['DaysOnMarket'] ?? null;
     $dist     = isset($p['_distance']) ? round((float)$p['_distance'],2).' mi' : '';
-    // Use direct photo URL for email (strip proxy wrapper if present)
+    // Use absolute proxy URL so email clients load photos through our server (which adds the OAuth token)
     $emailPhoto = $photo;
-    if ($emailPhoto && preg_match('/photo\.php\?url=(.+)$/', $emailPhoto, $pm)) {
-        $emailPhoto = urldecode($pm[1]); // use the direct Trestle URL
+    if ($emailPhoto && strpos($emailPhoto, 'http') !== 0) {
+        // Relative URL like "photo.php?url=..." → make absolute
+        $emailPhoto = rtrim($siteUrl ?: 'https://peoplestar.com/ckmls/', '/') . '/' . ltrim($emailPhoto, '/');
     }
 
     $photoHtml = $emailPhoto
