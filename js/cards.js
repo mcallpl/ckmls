@@ -30,7 +30,21 @@ function buildPhotoSection(prop, cardIdx) {
     const photos = prop._photos && prop._photos.length ? prop._photos
                  : prop._photo ? [prop._photo] : [];
 
-    PhotoGallery.create(outer, photos, { lazy: true, showCounter: true });
+    if (typeof PhotoGallery !== 'undefined') {
+        PhotoGallery.create(outer, photos, { lazy: true, showCounter: true });
+    } else {
+        // Fallback if module hasn't loaded
+        var wrap = document.createElement('div');
+        wrap.className = 'pc-wrap' + (photos.length === 0 ? ' no-photo' : '');
+        if (photos.length > 0) {
+            var img = document.createElement('img');
+            img.src = photos[0]; img.className = 'pc-img'; img.loading = 'lazy';
+            wrap.appendChild(img);
+        } else {
+            wrap.innerHTML = '<div class="np-icon">\uD83C\uDFE0</div>';
+        }
+        outer.appendChild(wrap);
+    }
     return outer;
 }
 

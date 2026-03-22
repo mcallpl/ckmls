@@ -1,6 +1,12 @@
 <?php
 require_once __DIR__ . '/config.php';
-$cacheBust = filemtime(__DIR__ . '/js/app.js');
+$cacheBust = max(
+    filemtime(__DIR__ . '/js/app.js'),
+    filemtime(__DIR__ . '/js/cards.js'),
+    filemtime(__DIR__ . '/js/filters.js'),
+    filemtime(__DIR__ . '/js/photo-gallery.js'),
+    filemtime(__DIR__ . '/js/map.js')
+);
 header('Cache-Control: no-cache, must-revalidate');
 ?>
 <!DOCTYPE html>
