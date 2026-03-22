@@ -287,9 +287,6 @@ function fmtD($s) {
             <?php if ($agent_name_listing): ?>
             <div><div class="detail-item-label">Listing Agent</div><div class="detail-item-val"><?= htmlspecialchars($agent_name_listing) ?></div></div>
             <?php endif; ?>
-            <?php if ($office): ?>
-            <div><div class="detail-item-label">Listing Office</div><div class="detail-item-val"><?= htmlspecialchars($office) ?></div></div>
-            <?php endif; ?>
             <?php if (!empty($prop['ListingContractDate'])): ?>
             <div><div class="detail-item-label">Listed</div><div class="detail-item-val"><?= fmtD($prop['ListingContractDate']) ?></div></div>
             <?php endif; ?>
@@ -309,37 +306,154 @@ function fmtD($s) {
 
     <!-- ATTOM Public Records -->
     <?php if ($attom && empty($attom['_error'])): ?>
+
+    <?php
+        $owners = array_filter([$attom['owner1'] ?? '', $attom['owner2'] ?? '', $attom['owner3'] ?? '']);
+    ?>
+
+    <!-- Owner Information -->
+    <?php if ($owners || !empty($attom['mailing_address'])): ?>
     <div class="section">
-        <div class="section-title">Public Records</div>
-        <?php
-            $owners = array_filter([$attom['owner1'] ?? '', $attom['owner2'] ?? '', $attom['owner3'] ?? '']);
-            if ($owners): ?>
+        <div class="section-title">Owner Information</div>
+        <?php if ($owners): ?>
             <div class="attom-row"><span class="attom-label">Owner</span><span class="attom-val"><?= htmlspecialchars(implode(' & ', $owners)) ?></span></div>
         <?php endif; ?>
         <?php if (!empty($attom['owner_occupied'])): ?>
-            <div class="attom-row"><span class="attom-label">Occupancy</span><span class="attom-val">Owner Occupied</span></div>
+            <div class="attom-row"><span class="attom-label">Occupancy</span><span class="attom-val" style="color:#3ecf8e">Owner Occupied</span></div>
         <?php elseif (!empty($attom['absentee_status'])): ?>
-            <div class="attom-row"><span class="attom-label">Occupancy</span><span class="attom-val">Absentee Owner</span></div>
+            <div class="attom-row"><span class="attom-label">Occupancy</span><span class="attom-val" style="color:#f59e0b"><?= htmlspecialchars($attom['absentee_status']) ?></span></div>
         <?php endif; ?>
+        <?php if (!empty($attom['mailing_address'])): ?>
+            <div class="attom-row"><span class="attom-label">Mailing Address</span><span class="attom-val"><?= htmlspecialchars($attom['mailing_address']) ?></span></div>
+        <?php endif; ?>
+    </div>
+    <?php endif; ?>
+
+    <!-- Property Characteristics (ATTOM) -->
+    <?php
+        $hasCharacteristics = !empty($attom['gross_sqft']) || !empty($attom['lot_size_sqft']) || !empty($attom['stories'])
+            || !empty($attom['heating']) || !empty($attom['cooling']) || !empty($attom['garage'])
+            || !empty($attom['zoning']) || !empty($attom['land_use']) || !empty($attom['legal_desc']);
+    ?>
+    <?php if ($hasCharacteristics): ?>
+    <div class="section">
+        <div class="section-title">Property Characteristics</div>
+        <div class="detail-grid">
+            <?php if (!empty($attom['gross_sqft'])): ?>
+            <div><div class="detail-item-label">Living Area</div><div class="detail-item-val"><?= number_format((float)$attom['gross_sqft']) ?> sq ft</div></div>
+            <?php endif; ?>
+            <?php if (!empty($attom['lot_size_sqft'])): ?>
+            <div><div class="detail-item-label">Lot Size</div><div class="detail-item-val"><?= number_format((float)$attom['lot_size_sqft']) ?> sq ft<?php if ((float)$attom['lot_size_sqft'] >= 43560): ?> (<?= round((float)$attom['lot_size_sqft'] / 43560, 2) ?> acres)<?php endif; ?></div></div>
+            <?php endif; ?>
+            <?php if (!empty($attom['stories'])): ?>
+            <div><div class="detail-item-label">Stories</div><div class="detail-item-val"><?= htmlspecialchars($attom['stories']) ?></div></div>
+            <?php endif; ?>
+            <?php if (!empty($attom['heating'])): ?>
+            <div><div class="detail-item-label">Heating</div><div class="detail-item-val"><?= htmlspecialchars($attom['heating']) ?></div></div>
+            <?php endif; ?>
+            <?php if (!empty($attom['cooling'])): ?>
+            <div><div class="detail-item-label">Cooling</div><div class="detail-item-val"><?= htmlspecialchars($attom['cooling']) ?></div></div>
+            <?php endif; ?>
+            <?php if (!empty($attom['garage'])): ?>
+            <div><div class="detail-item-label">Garage</div><div class="detail-item-val"><?= htmlspecialchars($attom['garage']) ?></div></div>
+            <?php endif; ?>
+            <?php if (!empty($attom['land_use'])): ?>
+            <div><div class="detail-item-label">Land Use</div><div class="detail-item-val"><?= htmlspecialchars($attom['land_use']) ?></div></div>
+            <?php endif; ?>
+            <?php if (!empty($attom['zoning'])): ?>
+            <div><div class="detail-item-label">Zoning</div><div class="detail-item-val"><?= htmlspecialchars($attom['zoning']) ?></div></div>
+            <?php endif; ?>
+        </div>
+        <?php if (!empty($attom['legal_desc'])): ?>
+            <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--bord);">
+                <div class="detail-item-label" style="margin-bottom:4px">Legal Description</div>
+                <div style="font-size:.82rem;color:var(--muted);line-height:1.5"><?= htmlspecialchars($attom['legal_desc']) ?></div>
+            </div>
+        <?php endif; ?>
+    </div>
+    <?php endif; ?>
+
+    <!-- Purchase History -->
+    <?php if (!empty($attom['last_sale_date']) || !empty($attom['prior_sale_date'])): ?>
+    <div class="section">
+        <div class="section-title">Purchase History</div>
         <?php if (!empty($attom['last_sale_date'])): ?>
-            <div class="attom-row"><span class="attom-label">Last Purchase</span><span class="attom-val"><?= fmtD($attom['last_sale_date']) ?><?= !empty($attom['last_sale_price']) ? ' for ' . fmtP($attom['last_sale_price']) : '' ?></span></div>
+            <div class="attom-row"><span class="attom-label">Last Sale Date</span><span class="attom-val"><?= fmtD($attom['last_sale_date']) ?></span></div>
+        <?php endif; ?>
+        <?php if (!empty($attom['last_sale_price'])): ?>
+            <div class="attom-row"><span class="attom-label">Last Sale Price</span><span class="attom-val" style="font-weight:700;color:var(--accent)"><?= fmtP($attom['last_sale_price']) ?></span></div>
+        <?php endif; ?>
+        <?php if (!empty($attom['last_doc_type'])): ?>
+            <div class="attom-row"><span class="attom-label">Document Type</span><span class="attom-val"><?= htmlspecialchars($attom['last_doc_type']) ?></span></div>
+        <?php endif; ?>
+        <?php if (!empty($attom['last_trans_type'])): ?>
+            <div class="attom-row"><span class="attom-label">Transaction Type</span><span class="attom-val"><?= htmlspecialchars($attom['last_trans_type']) ?></span></div>
+        <?php endif; ?>
+        <?php if (!empty($attom['prior_sale_date'])): ?>
+            <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--bord);"></div>
+            <div class="attom-row"><span class="attom-label">Prior Sale Date</span><span class="attom-val"><?= fmtD($attom['prior_sale_date']) ?></span></div>
+        <?php endif; ?>
+        <?php if (!empty($attom['prior_sale_price'])): ?>
+            <div class="attom-row"><span class="attom-label">Prior Sale Price</span><span class="attom-val"><?= fmtP($attom['prior_sale_price']) ?></span></div>
+        <?php endif; ?>
+    </div>
+    <?php endif; ?>
+
+    <!-- Assessment & Tax -->
+    <?php if (!empty($attom['assessed_total']) || !empty($attom['tax_amount']) || !empty($attom['apn'])): ?>
+    <div class="section">
+        <div class="section-title">Assessment & Tax</div>
+        <?php if (!empty($attom['apn'])): ?>
+            <div class="attom-row"><span class="attom-label">APN / Parcel #</span><span class="attom-val" style="font-family:monospace;letter-spacing:.05em"><?= htmlspecialchars($attom['apn']) ?></span></div>
         <?php endif; ?>
         <?php if (!empty($attom['assessed_total'])): ?>
-            <div class="attom-row"><span class="attom-label">Assessed Value</span><span class="attom-val"><?= fmtP($attom['assessed_total']) ?></span></div>
+            <div class="attom-row"><span class="attom-label">Total Assessed</span><span class="attom-val" style="font-weight:700"><?= fmtP($attom['assessed_total']) ?></span></div>
+        <?php endif; ?>
+        <?php if (!empty($attom['assessed_land'])): ?>
+            <div class="attom-row"><span class="attom-label">Land Value</span><span class="attom-val"><?= fmtP($attom['assessed_land']) ?></span></div>
+        <?php endif; ?>
+        <?php if (!empty($attom['assessed_impr'])): ?>
+            <div class="attom-row"><span class="attom-label">Improvement Value</span><span class="attom-val"><?= fmtP($attom['assessed_impr']) ?></span></div>
         <?php endif; ?>
         <?php if (!empty($attom['tax_amount'])): ?>
-            <div class="attom-row"><span class="attom-label">Annual Tax</span><span class="attom-val"><?= fmtP($attom['tax_amount']) ?><?= !empty($attom['tax_year']) ? ' (' . $attom['tax_year'] . ')' : '' ?></span></div>
+            <div class="attom-row"><span class="attom-label">Annual Tax</span><span class="attom-val" style="font-weight:700"><?= fmtP($attom['tax_amount']) ?><?= !empty($attom['tax_year']) ? ' <span style="color:var(--muted);font-weight:400">(' . htmlspecialchars($attom['tax_year']) . ')</span>' : '' ?></span></div>
         <?php endif; ?>
-        <?php if (!empty($attom['land_use'])): ?>
-            <div class="attom-row"><span class="attom-label">Land Use</span><span class="attom-val"><?= htmlspecialchars($attom['land_use']) ?></span></div>
+        <?php if (!empty($attom['assessed_total']) && !empty($attom['tax_amount'])): ?>
+            <?php $taxRate = round(((float)$attom['tax_amount'] / (float)$attom['assessed_total']) * 100, 3); ?>
+            <div class="attom-row"><span class="attom-label">Effective Tax Rate</span><span class="attom-val"><?= $taxRate ?>%</span></div>
         <?php endif; ?>
-        <?php if (!empty($attom['loans'])): foreach ($attom['loans'] as $loan): ?>
-            <div class="attom-row">
-                <span class="attom-label"><?= htmlspecialchars($loan['position'] ?? 'Loan') ?></span>
-                <span class="attom-val"><?= !empty($loan['amount']) ? fmtP($loan['amount']) : '—' ?><?= !empty($loan['type']) ? ' (' . htmlspecialchars($loan['type']) . ')' : '' ?></span>
-            </div>
-        <?php endforeach; endif; ?>
     </div>
+    <?php endif; ?>
+
+    <!-- Loans on Record -->
+    <?php if (!empty($attom['loans'])): ?>
+    <div class="section">
+        <div class="section-title">Loans on Record</div>
+        <?php foreach ($attom['loans'] as $i => $loan): ?>
+            <?php if ($i > 0): ?><div style="margin:12px 0;border-top:1px solid var(--bord);"></div><?php endif; ?>
+            <div class="attom-row">
+                <span class="attom-label"><?= htmlspecialchars($loan['position'] ?: 'Loan ' . ($i + 1)) ?></span>
+                <span class="attom-val" style="font-weight:700;color:var(--accent)"><?= !empty($loan['amount']) ? fmtP($loan['amount']) : '—' ?></span>
+            </div>
+            <?php if (!empty($loan['type'])): ?>
+                <div class="attom-row"><span class="attom-label">Loan Type</span><span class="attom-val"><?= htmlspecialchars($loan['type']) ?></span></div>
+            <?php endif; ?>
+            <?php if (!empty($loan['lender'])): ?>
+                <div class="attom-row"><span class="attom-label">Lender</span><span class="attom-val"><?= htmlspecialchars($loan['lender']) ?></span></div>
+            <?php endif; ?>
+            <?php if (!empty($loan['date'])): ?>
+                <div class="attom-row"><span class="attom-label">Recorded</span><span class="attom-val"><?= fmtD($loan['date']) ?></span></div>
+            <?php endif; ?>
+            <?php if (!empty($loan['rate_type'])): ?>
+                <div class="attom-row"><span class="attom-label">Rate Type</span><span class="attom-val"><?= htmlspecialchars($loan['rate_type']) ?></span></div>
+            <?php endif; ?>
+            <?php if (!empty($loan['due_date'])): ?>
+                <div class="attom-row"><span class="attom-label">Maturity Date</span><span class="attom-val"><?= fmtD($loan['due_date']) ?></span></div>
+            <?php endif; ?>
+        <?php endforeach; ?>
+    </div>
+    <?php endif; ?>
+
     <?php endif; ?>
 
     <!-- Agent Contact Card -->
