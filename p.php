@@ -66,8 +66,8 @@ if (!$photos && $photo) $photos = [$photo];
 if (count($photos) <= 1 && !empty($prop['ListingKey'])) {
     require_once __DIR__ . '/lib/auth.php';
     require_once __DIR__ . '/lib/api.php';
-    require_once __DIR__ . '/lib/search_lib.php';
-    $allPhotos = getPhotosForListing($prop['ListingKey'], 50);
+    require_once __DIR__ . '/lib/photos.php';
+    $allPhotos = getPhotosForListing($prop['ListingKey'], 200);
     if (count($allPhotos) > 1) {
         $scheme  = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
         $baseUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost')

@@ -29,6 +29,7 @@ require_once __DIR__ . '/lib/auth.php';
 require_once __DIR__ . '/lib/api.php';
 require_once __DIR__ . '/lib/geocode.php';
 require_once __DIR__ . '/lib/search_lib.php';
+require_once __DIR__ . '/lib/photos.php';
 require_once __DIR__ . '/lib/records.php';
 
 if (!function_exists('jsonError')) {
@@ -108,7 +109,7 @@ try {
 
     // 4. Photos — proxied through photo.php so auth token is sent server-side
     $listingKeys = array_values(array_filter(array_column($properties, 'ListingKey')));
-    $photos      = batchGetPrimaryPhotos($listingKeys);
+    $photos      = batchGetAllPhotos($listingKeys);
     $scheme  = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https' : 'http';
     $baseUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost')
                . rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\') . '/photo.php?url=';

@@ -201,64 +201,8 @@ function getAddressHistory(string $streetNumber, string $streetName, string $cit
     }
 }
 
-/**
- * Batch fetch primary photos for an array of listing keys
- * Returns ['listingKey' => 'photoUrl', ...]
- */
-function batchGetPrimaryPhotos(array $listingKeys): array {
-    if (empty($listingKeys)) return [];
-
-    $photos = [];
-    // Chunks of 5 for reliability — fewer per request = fewer timeouts
-    $chunks = array_chunk($listingKeys, 5);
-
-    foreach ($chunks as $chunk) {
-        $orParts = array_map(fn($k) => "ResourceRecordKey eq '$k'", $chunk);
-        $filter  = '(' . implode(' or ', $orParts) . ')';
-
-        // Try up to 2 times per chunk
-        for ($attempt = 0; $attempt < 2; $attempt++) {
-            try {
-                $result = trestleGet('Media', [
-                    '$filter'  => $filter,
-                    '$select'  => 'ResourceRecordKey,MediaURL,Order',
-                    '$orderby' => 'ResourceRecordKey asc,Order asc',
-                    '$top'     => count($chunk) * 50,
-                ]);
-                foreach ($result['value'] ?? [] as $m) {
-                    $key = $m['ResourceRecordKey'];
-                    $url = $m['MediaURL'] ?? '';
-                    if (!$key || !$url) continue;
-                    if (!isset($photos[$key])) $photos[$key] = [];
-                    $photos[$key][] = $url;
-                }
-                break; // success — don't retry
-            } catch (Exception $e) {
-                if ($attempt === 0) usleep(500000); // wait 500ms then retry
-                // else give up on this chunk
-            }
-        }
-    }
-
-    return $photos;
-}
-
-/**
- * Get multiple photos for a single listing (for detail/records section)
- */
-function getPhotosForListing(string $listingKey, int $limit = 8): array {
-    try {
-        $result = trestleGet('Media', [
-            '$filter'  => "ResourceRecordKey eq '$listingKey'",
-            '$orderby' => 'Order',
-            '$select'  => 'MediaURL,Order,ShortDescription',
-            '$top'     => $limit,
-        ]);
-        return $result['value'] ?? [];
-    } catch (Exception $e) {
-        return [];
-    }
-}
+// Photo functions moved to lib/photos.php
+// Use: batchGetAllPhotos() and getPhotosForListing()
 
 /**
  * Attach distance from center point to each property
