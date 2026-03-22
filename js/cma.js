@@ -112,7 +112,7 @@ function buildStep1Html() {
                         <input type="text" id="cmaLastName" class="cma-input" placeholder="Last name" autocomplete="off">
                     </div>
                 </div>
-                <input type="text" id="cmaEmail" class="cma-input" placeholder="Email address" autocomplete="off">
+                <input type="text" id="cmaEmail" class="cma-input" placeholder="Email addresses (comma-separated)" autocomplete="off">
             </div>
 
             <hr class="cma-divider">
@@ -477,12 +477,14 @@ async function sendFinalCma() {
     if (!cmaStep1Data) { alert('Session expired — close and reopen the CMA modal.'); return; }
 
     const recipientName = [cmaStep1Data.firstName, cmaStep1Data.lastName].filter(Boolean).join(' ');
-    const recipients = [{
+    // Support multiple emails separated by comma, semicolon, or space
+    const emails = cmaStep1Data.email.split(/[,;\s]+/).map(e => e.trim()).filter(e => e);
+    const recipients = emails.map(email => ({
         name: recipientName,
-        email: cmaStep1Data.email,
+        email: email,
         first_name: cmaStep1Data.firstName,
         last_name: cmaStep1Data.lastName,
-    }];
+    }));
 
     document.getElementById('cmaSendFinalLabel').style.display   = 'none';
     document.getElementById('cmaSendFinalSpinner').style.display  = 'inline-block';
