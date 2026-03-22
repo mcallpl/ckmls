@@ -495,8 +495,13 @@ async function sendFinalCma() {
         BedroomsTotal: p.BedroomsTotal, BathroomsTotalInteger: p.BathroomsTotalInteger,
         LivingArea: p.LivingArea, YearBuilt: p.YearBuilt,
         DaysOnMarket: p.DaysOnMarket || p.CumulativeDaysOnMarket,
-        _photo: p._photo, _distance: p._distance,
-        PublicRemarks: p.PublicRemarks ? p.PublicRemarks.slice(0,300) : '',
+        _photo: p._photo, _photos: p._photos || [], _distance: p._distance,
+        PublicRemarks: p.PublicRemarks || '',
+        LotSizeAcres: p.LotSizeAcres, GarageSpaces: p.GarageSpaces,
+        AssociationFee: p.AssociationFee, AssociationFeeFrequency: p.AssociationFeeFrequency,
+        PropertyType: p.PropertyType, PropertySubType: p.PropertySubType,
+        ListAgentFullName: p.ListAgentFullName, ListOfficeName: p.ListOfficeName,
+        OriginalListPrice: p.OriginalListPrice, ListingContractDate: p.ListingContractDate,
     }));
 
     try {
