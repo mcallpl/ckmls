@@ -587,31 +587,59 @@ $emailSize = strlen($htmlEmail);
 $emailSizeKB = round($emailSize / 1024, 1);
 
 // Send from the agent's real email
+require_once __DIR__ . '/lib/smtp.php';
+
 $fromEmail = $sigEmail ?: (defined('AGENT_EMAIL') ? AGENT_EMAIL : '');
 $fromName  = $sigName  ?: (defined('AGENT_NAME')  ? AGENT_NAME  : '');
+
+// Use SMTP when configured (reliable, bypasses content filters)
+$useSmtp = defined('SMTP_HOST') && SMTP_HOST && defined('SMTP_USER') && SMTP_USER && defined('SMTP_PASS') && SMTP_PASS;
 
 foreach ($recipients as $r) {
     $toEmail = filter_var(trim($r['email'] ?? ''), FILTER_VALIDATE_EMAIL);
     $toName  = trim($r['name'] ?? '');
     if (!$toEmail) { $errors[] = "Invalid email: ".($r['email']??''); continue; }
 
-    $headers  = "From: " . $fromName . " <" . $fromEmail . ">\r\n";
-    $headers .= "Reply-To: " . $fromEmail . "\r\n";
-    $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
-    $headers .= "MIME-Version: 1.0\r\n";
+    $mailResult = false;
+    $method = 'mail()';
 
-    $mailResult = @mail($toEmail, $subject, $htmlEmail, $headers);
+    if ($useSmtp) {
+        $method = 'SMTP';
+        $result = smtp_send([
+            'host'     => SMTP_HOST,
+            'port'     => defined('SMTP_PORT') ? (int)SMTP_PORT : 465,
+            'user'     => SMTP_USER,
+            'pass'     => SMTP_PASS,
+            'from'     => $fromEmail,
+            'fromName' => $fromName,
+            'to'       => $toEmail,
+            'toName'   => $toName,
+            'subject'  => $subject,
+            'html'     => $htmlEmail,
+            'replyTo'  => $fromEmail,
+        ]);
+        $mailResult = $result['success'];
+        if (!$mailResult) {
+            $errors[] = "SMTP to {$toEmail}: " . ($result['error'] ?? 'unknown');
+        }
+    } else {
+        $headers  = "From: " . $fromName . " <" . $fromEmail . ">\r\n";
+        $headers .= "Reply-To: " . $fromEmail . "\r\n";
+        $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+        $headers .= "MIME-Version: 1.0\r\n";
+        $mailResult = @mail($toEmail, $subject, $htmlEmail, $headers);
+    }
 
-    // Log every send attempt for debugging
+    // Log every send attempt
     @file_put_contents(__DIR__ . '/data/email_log.txt',
-        date('Y-m-d H:i:s') . " | To: {$toEmail} | Subject: {$subject} | Size: {$emailSizeKB}KB | mail()=" . ($mailResult ? 'true' : 'false') . " | From: {$fromEmail}\n",
+        date('Y-m-d H:i:s') . " | {$method} | To: {$toEmail} | Subject: {$subject} | Size: {$emailSizeKB}KB | result=" . ($mailResult ? 'true' : 'false') . " | From: {$fromEmail}\n",
         FILE_APPEND);
 
     if ($mailResult) {
         $sent[] = $toEmail;
     } else {
         $err = error_get_last();
-        $errors[] = "Failed to send to {$toEmail}".($err ? ': '.$err['message'] : ' (mail() returned false)');
+        if (!$useSmtp) $errors[] = "Failed to send to {$toEmail}".($err ? ': '.$err['message'] : '');
     }
 }
 
