@@ -11,6 +11,7 @@ function buildSortBar(count, totalCount) {
     bar.id = 'sort-bar';
 
     const sorts = [
+        { key:'status',   label:'Status' },
         { key:'newest',   label:'Date' },
         { key:'price',    label:'Price' },
         { key:'distance', label:'📍 Distance' },
@@ -63,10 +64,26 @@ function updateResultCount(el, showing, total) {
     el.innerHTML = `<strong>${showing.toLocaleString()}</strong> home${showing !== 1 ? 's' : ''}`;
 }
 
+// Status sort order: Active first, then the pipeline, then closed/dead
+const _statusOrder = {
+    'Active': 0, 'Coming Soon': 1, 'Active Under Contract': 2,
+    'Pending': 3, 'Closed': 4, 'Canceled': 5, 'Expired': 6,
+};
+
 function getSortedProperties(props, sortKey) {
     const sorted = [...props];
     const dir    = currentSortDir === 'asc' ? 1 : -1;
     switch (sortKey) {
+        case 'status':
+            return sorted.sort((a,b) => {
+                const sa = _statusOrder[a.StandardStatus] ?? 9;
+                const sb = _statusOrder[b.StandardStatus] ?? 9;
+                if (sa !== sb) return dir * (sa - sb);
+                // Within same status, sort by price descending
+                const pa = a.ClosePrice || a.ListPrice || 0;
+                const pb = b.ClosePrice || b.ListPrice || 0;
+                return pb - pa;
+            });
         case 'price':    return sorted.sort((a,b) => dir * ((a.ListPrice||a.ClosePrice||0) - (b.ListPrice||b.ClosePrice||0)));
         case 'distance': return sorted.sort((a,b) => dir * ((a._distance??Infinity) - (b._distance??Infinity)));
         case 'dom':      return sorted.sort((a,b) => dir * ((a.DaysOnMarket||a.CumulativeDaysOnMarket||0) - (b.DaysOnMarket||b.CumulativeDaysOnMarket||0)));
