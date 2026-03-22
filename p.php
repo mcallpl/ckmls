@@ -21,11 +21,26 @@ if (!$key || strlen($key) !== 12 || !file_exists($file)) {
 $data  = json_decode(file_get_contents($file), true);
 $prop  = $data['property']  ?? [];
 $agent = $data['agent']     ?? [];
-$attom = $data['attom']     ?? null;
 
 // Property fields
 $addr      = trim(($prop['StreetNumber'] ?? '') . ' ' . ($prop['StreetName'] ?? ''));
 $cityLine  = implode(', ', array_filter([$prop['City'] ?? '', $prop['StateOrProvince'] ?? ''])) . ' ' . ($prop['PostalCode'] ?? '');
+
+// Fetch ATTOM data live for THIS property's address
+require_once __DIR__ . '/lib/records.php';
+$attom = null;
+$attomKey = defined('ATTOM_API_KEY') ? (string)ATTOM_API_KEY : '';
+if ($attomKey && ($prop['StreetNumber'] ?? '') && ($prop['StreetName'] ?? '')) {
+    $attom = fetchAttomData(
+        $prop['StreetNumber'] ?? '',
+        $prop['StreetName'] ?? '',
+        $prop['City'] ?? '',
+        $prop['StateOrProvince'] ?? '',
+        $prop['PostalCode'] ?? '',
+        $addr . ', ' . ($prop['City'] ?? '') . ', ' . ($prop['StateOrProvince'] ?? '') . ' ' . ($prop['PostalCode'] ?? ''),
+        $attomKey
+    );
+}
 $status    = $prop['StandardStatus'] ?? 'Unknown';
 $isClosed  = $status === 'Closed';
 $price     = $isClosed ? ($prop['ClosePrice'] ?? $prop['ListPrice'] ?? 0) : ($prop['ListPrice'] ?? 0);

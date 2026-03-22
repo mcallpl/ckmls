@@ -380,7 +380,6 @@ foreach ($properties as $p) {
     $detailKey = bin2hex(random_bytes(6));
     $detailPayload = [
         'property'  => $p,
-        'attom'     => $subjectAttom,
         'agent'     => [
             'name' => $sigName, 'title' => $sigTitle, 'license' => $sigLicense,
             'email' => $sigEmail, 'phone' => $sigPhone, 'website' => $sigWebsite,
