@@ -6,6 +6,31 @@ let cmaStep1Data  = null;
 let cmaCompList   = [];
 let cmaGenerating = false;
 
+// ── Agent info persistence (localStorage) ────────────────────────
+function getSavedAgentInfo() {
+    try {
+        const saved = localStorage.getItem('cma_agent_info');
+        return saved ? JSON.parse(saved) : null;
+    } catch(_) { return null; }
+}
+function saveAgentInfo(name, phone, email) {
+    try {
+        localStorage.setItem('cma_agent_info', JSON.stringify({ name, phone, email }));
+    } catch(_) {}
+}
+function _cmaAgentName() {
+    const s = getSavedAgentInfo();
+    return s?.name || (typeof AGENT_NAME !== 'undefined' ? AGENT_NAME : 'Your Name');
+}
+function _cmaAgentPhone() {
+    const s = getSavedAgentInfo();
+    return s?.phone || (typeof AGENT_PHONE !== 'undefined' ? AGENT_PHONE : 'Your Phone');
+}
+function _cmaAgentEmail() {
+    const s = getSavedAgentInfo();
+    return s?.email || (typeof AGENT_EMAIL !== 'undefined' ? AGENT_EMAIL : 'Your Email');
+}
+
 // ── CMA Button ───────────────────────────────────────────────────
 function buildCmaButton() {
     const wrap = document.createElement('div');
@@ -98,21 +123,21 @@ function buildStep1Html() {
                     <button type="button" class="cma-edit-btn" id="cmaEditAgentBtn">✏️ Edit</button>
                 </label>
                 <div class="cma-agent-display" id="cmaAgentDisplay">
-                    <div class="cma-agent-line" id="cmaAgentNameDisplay">${esc(typeof AGENT_NAME !== 'undefined' ? AGENT_NAME : 'Your Name')}</div>
-                    <div class="cma-agent-line muted" id="cmaAgentPhoneDisplay">${esc(typeof AGENT_PHONE !== 'undefined' ? AGENT_PHONE : 'Your Phone')}</div>
-                    <div class="cma-agent-line muted" id="cmaAgentEmailDisplay">${esc(typeof AGENT_EMAIL !== 'undefined' ? AGENT_EMAIL : 'Your Email')}</div>
+                    <div class="cma-agent-line" id="cmaAgentNameDisplay">${esc(_cmaAgentName())}</div>
+                    <div class="cma-agent-line muted" id="cmaAgentPhoneDisplay">${esc(_cmaAgentPhone())}</div>
+                    <div class="cma-agent-line muted" id="cmaAgentEmailDisplay">${esc(_cmaAgentEmail())}</div>
                 </div>
                 <div id="cmaAgentFields" style="display:none">
                     <div class="cma-field-row" style="margin-bottom:10px">
                         <div class="cma-field-group">
-                            <input type="text" id="cmaAgentName" class="cma-input" placeholder="Your name" autocomplete="off">
+                            <input type="text" id="cmaAgentName" class="cma-input" placeholder="Your name" value="${esc(_cmaAgentName())}" autocomplete="off">
                         </div>
                         <div class="cma-field-group">
-                            <input type="text" id="cmaAgentPhone" class="cma-input" placeholder="Your phone" autocomplete="off">
+                            <input type="text" id="cmaAgentPhone" class="cma-input" placeholder="Your phone" value="${esc(_cmaAgentPhone())}" autocomplete="off">
                         </div>
                     </div>
                     <input type="text" id="cmaAgentEmail" class="cma-input" placeholder="Your email"
-                           style="margin-bottom:10px" autocomplete="off">
+                           value="${esc(_cmaAgentEmail())}" style="margin-bottom:10px" autocomplete="off">
                 </div>
             </div>
 
@@ -205,9 +230,13 @@ function wireStep1Events() {
         const btn     = document.getElementById('cmaEditAgentBtn');
         const editing = fields.style.display !== 'none';
         if (editing) {
-            document.getElementById('cmaAgentNameDisplay').textContent  = document.getElementById('cmaAgentName')?.value  || 'Your Name';
-            document.getElementById('cmaAgentPhoneDisplay').textContent = document.getElementById('cmaAgentPhone')?.value || 'Your Phone';
-            document.getElementById('cmaAgentEmailDisplay').textContent = document.getElementById('cmaAgentEmail')?.value || 'Your Email';
+            const newName  = document.getElementById('cmaAgentName')?.value  || 'Your Name';
+            const newPhone = document.getElementById('cmaAgentPhone')?.value || 'Your Phone';
+            const newEmail = document.getElementById('cmaAgentEmail')?.value || 'Your Email';
+            document.getElementById('cmaAgentNameDisplay').textContent  = newName;
+            document.getElementById('cmaAgentPhoneDisplay').textContent = newPhone;
+            document.getElementById('cmaAgentEmailDisplay').textContent = newEmail;
+            saveAgentInfo(newName, newPhone, newEmail);
             display.style.display = '';
             fields.style.display  = 'none';
             btn.textContent = '✏️ Edit';
