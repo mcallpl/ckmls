@@ -183,7 +183,11 @@ if ($editedNarrative) {
           ."the agent mentions should come through clearly):\n\"{$agentNotes}\"\n\n"
         : "";
 
-    $prompt = "You are a top real estate professional writing a CMA email narrative.\n\n"
+    $prompt = "You are writing a CMA email narrative on behalf of {$agentName}"
+        .($teamName !== $agentName ? " of {$teamName}" : '')
+        .". You are writing AS {$agentName} — in first person from their perspective. "
+        ."When the agent's notes say things like names of partners or colleagues, preserve them exactly. "
+        ."Do NOT replace or rephrase people's names from the agent's notes.\n\n"
         ."{$recipientGreeting}"
         ."AREA: {$subjectAddr} — {$city}".($zip ? " {$zip}" : '')."\n\n"
         .$subjectContext
