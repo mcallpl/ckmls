@@ -82,21 +82,31 @@ function buildFilters(array $geo, float $radiusMiles, array $statuses, int $clos
         'Expired'               => 'Expired',
     ];
 
-    // Build status filter — single eq or OR'd conditions
+    // Build status filter — when Closed is combined with other statuses,
+    // the CloseDate restriction must only apply to Closed, not everything.
+    // e.g.: (StandardStatus eq 'Active') or (StandardStatus eq 'Closed' and CloseDate ge 2025-12-22)
     if (!empty($statuses)) {
+        $hasClosed = in_array('Closed', $statuses);
+        $cutoff    = ($hasClosed && $closedDays > 0)
+            ? date('Y-m-d', strtotime("-{$closedDays} days"))
+            : '';
+
         $enumStatuses = array_map(fn($s) => $statusEnumMap[$s] ?? $s, $statuses);
-        if (count($enumStatuses) === 1) {
-            $filters[] = "StandardStatus eq '" . addslashes($enumStatuses[0]) . "'";
+        $parts = [];
+        foreach ($statuses as $i => $s) {
+            $enum = $enumStatuses[$i];
+            $cond = "StandardStatus eq '" . addslashes($enum) . "'";
+            // Attach CloseDate filter only to the Closed status
+            if ($s === 'Closed' && $cutoff) {
+                $cond = "($cond and CloseDate ge $cutoff)";
+            }
+            $parts[] = $cond;
+        }
+        if (count($parts) === 1) {
+            $filters[] = $parts[0];
         } else {
-            $parts = array_map(fn($s) => "StandardStatus eq '" . addslashes($s) . "'", $enumStatuses);
             $filters[] = '(' . implode(' or ', $parts) . ')';
         }
-    }
-
-    // Close date window only when Closed is among selected statuses
-    if (in_array('Closed', $statuses) && $closedDays > 0) {
-        $cutoff    = date('Y-m-d', strtotime("-{$closedDays} days"));
-        $filters[] = "CloseDate ge $cutoff";
     }
 
     // Geographic scope: bounding box from lat/lng + radius
