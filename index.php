@@ -1,12 +1,6 @@
 <?php
 require_once __DIR__ . '/config.php';
-$cacheBust = max(
-    filemtime(__DIR__ . '/js/app.js'),
-    filemtime(__DIR__ . '/js/cards.js'),
-    filemtime(__DIR__ . '/js/filters.js'),
-    filemtime(__DIR__ . '/js/photo-gallery.js'),
-    filemtime(__DIR__ . '/js/map.js')
-);
+$cacheBust = time(); // force fresh JS on every page load — no caching
 header('Cache-Control: no-cache, must-revalidate');
 ?>
 <!DOCTYPE html>
