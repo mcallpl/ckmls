@@ -23,8 +23,12 @@ var PhotoGallery = (function() {
         var lazy = options.lazy !== false;
         var showCounter = options.showCounter !== false;
 
-        // Ensure photos is a clean array
-        photos = (photos && photos.length) ? photos : [];
+        // Ensure photos is a clean array — remove nulls, empty strings, duplicates
+        photos = (photos && photos.length)
+            ? photos.filter(function(u) { return u && typeof u === 'string' && u.length > 5; })
+            : [];
+        // Remove duplicates
+        photos = photos.filter(function(u, i, arr) { return arr.indexOf(u) === i; });
 
         var wrap = document.createElement('div');
         wrap.className = 'pc-wrap' + (photos.length === 0 ? ' no-photo' : '');

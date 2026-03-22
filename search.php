@@ -114,7 +114,9 @@ try {
                . rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\') . '/photo.php?url=';
     foreach ($properties as &$prop) {
         $rawList = $photos[$prop['ListingKey'] ?? ''] ?? [];
-        // _photo = first image, _photos = all images (for grid)
+        // Filter out empty/null URLs
+        $rawList = array_values(array_filter($rawList, fn($u) => $u && strlen($u) > 5));
+        // _photo = first image, _photos = all images (for scrolling)
         if (!empty($rawList)) {
             $prop['_photo']  = $baseUrl . urlencode($rawList[0]);
             $prop['_photos'] = array_map(fn($u) => $baseUrl . urlencode($u), $rawList);

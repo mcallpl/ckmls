@@ -209,27 +209,34 @@ function batchGetPrimaryPhotos(array $listingKeys): array {
     if (empty($listingKeys)) return [];
 
     $photos = [];
-    // Smaller chunks since we're fetching all photos per listing
-    $chunks = array_chunk($listingKeys, 10);
+    // Chunks of 5 for reliability — fewer per request = fewer timeouts
+    $chunks = array_chunk($listingKeys, 5);
 
     foreach ($chunks as $chunk) {
         $orParts = array_map(fn($k) => "ResourceRecordKey eq '$k'", $chunk);
         $filter  = '(' . implode(' or ', $orParts) . ')';
 
-        try {
-            $result = trestleGet('Media', [
-                '$filter'  => $filter,
-                '$select'  => 'ResourceRecordKey,MediaURL,Order',
-                '$orderby' => 'ResourceRecordKey asc,Order asc',
-                '$top'     => count($chunk) * 50,  // up to 50 photos per listing
-            ]);
-            foreach ($result['value'] ?? [] as $m) {
-                $key = $m['ResourceRecordKey'];
-                if (!isset($photos[$key])) $photos[$key] = [];
-                $photos[$key][] = $m['MediaURL'] ?? '';
+        // Try up to 2 times per chunk
+        for ($attempt = 0; $attempt < 2; $attempt++) {
+            try {
+                $result = trestleGet('Media', [
+                    '$filter'  => $filter,
+                    '$select'  => 'ResourceRecordKey,MediaURL,Order',
+                    '$orderby' => 'ResourceRecordKey asc,Order asc',
+                    '$top'     => count($chunk) * 50,
+                ]);
+                foreach ($result['value'] ?? [] as $m) {
+                    $key = $m['ResourceRecordKey'];
+                    $url = $m['MediaURL'] ?? '';
+                    if (!$key || !$url) continue;
+                    if (!isset($photos[$key])) $photos[$key] = [];
+                    $photos[$key][] = $url;
+                }
+                break; // success — don't retry
+            } catch (Exception $e) {
+                if ($attempt === 0) usleep(500000); // wait 500ms then retry
+                // else give up on this chunk
             }
-        } catch (Exception $e) {
-            // Silently continue — photos are nice-to-have
         }
     }
 
