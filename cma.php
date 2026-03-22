@@ -623,11 +623,15 @@ foreach ($recipients as $r) {
             $errors[] = "SMTP to {$toEmail}: " . ($result['error'] ?? 'unknown');
         }
     } else {
+        // Encode as base64 to avoid RFC 2822 line-length violations
+        // (raw HTML can have lines > 998 chars which causes silent drops)
         $headers  = "From: " . $fromName . " <" . $fromEmail . ">\r\n";
         $headers .= "Reply-To: " . $fromEmail . "\r\n";
         $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+        $headers .= "Content-Transfer-Encoding: base64\r\n";
         $headers .= "MIME-Version: 1.0\r\n";
-        $mailResult = @mail($toEmail, $subject, $htmlEmail, $headers);
+        $encodedBody = chunk_split(base64_encode($htmlEmail), 76, "\r\n");
+        $mailResult = @mail($toEmail, $subject, $encodedBody, $headers);
     }
 
     // Save the full email for debugging — compare working vs non-working
