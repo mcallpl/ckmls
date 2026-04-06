@@ -35,11 +35,12 @@ $subjectAddress  = $group['subject_address'] ?? '';
 $addr      = trim(($prop['StreetNumber'] ?? '') . ' ' . ($prop['StreetName'] ?? ''));
 $cityLine  = implode(', ', array_filter([$prop['City'] ?? '', $prop['StateOrProvince'] ?? ''])) . ' ' . ($prop['PostalCode'] ?? '');
 
-// Fetch ATTOM data live for THIS property's address
+// Fetch ATTOM data live for THIS property's address (only if enabled for this CMA)
 require_once __DIR__ . '/lib/records.php';
 $attom = null;
+$groupUseAttom = $group['use_attom'] ?? false;
 $attomKey = defined('ATTOM_API_KEY') ? (string)ATTOM_API_KEY : '';
-if ($attomKey && ($prop['StreetNumber'] ?? '') && ($prop['StreetName'] ?? '')) {
+if ($groupUseAttom && $attomKey && ($prop['StreetNumber'] ?? '') && ($prop['StreetName'] ?? '')) {
     $attom = fetchAttomData(
         $prop['StreetNumber'] ?? '',
         $prop['StreetName'] ?? '',

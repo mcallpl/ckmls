@@ -104,15 +104,27 @@ header('Cache-Control: no-cache, must-revalidate');
 
     <hr class="divider">
 
+    <!-- ATTOM Data toggle -->
+    <div class="sec-label">Public Records</div>
+    <div class="status-pills">
+        <label class="status-pill attom-pill">
+            <input type="checkbox" id="attomChk" class="pill-cb-attom">
+            <span class="pill-dot"></span>Include ATTOM Data
+        </label>
+    </div>
+
+    <hr class="divider">
+
     <!-- THE FORM — only contains what gets POSTed -->
     <form id="searchForm">
 
         <!-- Status checkboxes injected here by syncForm() -->
         <div id="statusContainer"></div>
 
-        <!-- closed_days and radius hidden -->
+        <!-- closed_days, radius, and use_attom hidden -->
         <input type="hidden" id="hCD" name="closed_days" value="90">
         <input type="hidden" id="hR"  name="radius"      value="0.125">
+        <input type="hidden" id="hAttom" name="use_attom" value="0">
 
         <!-- Address — full-width single field -->
         <div class="search-hero">
@@ -177,6 +189,8 @@ const cdSel     = document.getElementById('cdSel');
 const rSel      = document.getElementById('rSel');
 const hCD       = document.getElementById('hCD');
 const hR        = document.getElementById('hR');
+const hAttom    = document.getElementById('hAttom');
+const attomChk  = document.getElementById('attomChk');
 const scBox     = document.getElementById('statusContainer');
 const addrInput = document.getElementById('addrInput');
 const clearBtn  = document.getElementById('clearBtn');
@@ -193,6 +207,7 @@ function syncForm() {
         scBox.appendChild(h);
     });
     hCD.value = cdSel.value;
+    hAttom.value = attomChk.checked ? '1' : '0';
     // For radius: if dropdown is on a custom drag value, use the stored numeric value
     const selVal = rSel.value;
     if (selVal === '_custom') {
@@ -241,6 +256,13 @@ rSel.addEventListener('change', function() {
         document.getElementById('searchForm').requestSubmit();
     }
 });
+// ATTOM pill visual state
+attomChk.closest('.status-pill').classList.toggle('checked', attomChk.checked);
+attomChk.addEventListener('change', () => {
+    attomChk.closest('.status-pill').classList.toggle('checked', attomChk.checked);
+    syncForm();
+});
+
 toggleClosedDays();
 syncForm();
 

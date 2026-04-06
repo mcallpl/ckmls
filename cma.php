@@ -47,6 +47,7 @@ if (!$siteUrl) {
     $siteUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\') . '/';
 }
 $previewOnly     = !empty($input['preview_only']);
+$useAttom        = !empty($input['use_attom']);
 $subjectAttom    = $input['subject_attom']    ?? null;
 $recipientFirst  = trim($input['recipient_first']  ?? '');
 $recipientLast   = trim($input['recipient_last']   ?? '');
@@ -542,6 +543,7 @@ foreach ($properties as $p) {
 $groupPayload = [
     'subject_address' => $subjectAddr,
     'members'         => $groupMembers,
+    'use_attom'       => $useAttom,
     'created_at'      => date('c'),
 ];
 @file_put_contents("$dataDir/group_$groupId.json", json_encode($groupPayload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));

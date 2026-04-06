@@ -29,6 +29,7 @@ const LOADER_MESSAGES = [
 // ── Global state ─────────────────────────────────────────────────
 let appData        = null;
 let appTotalCount  = null;
+let appUseAttom    = false;   // mirrors the ATTOM checkbox; set on each search
 let loadingMore    = false;
 let loaderInterval = null;
 let loaderMsgIndex = 0;
@@ -148,6 +149,7 @@ document.getElementById('searchForm').addEventListener('submit', async (e) => {
     }
 
     const formData = new FormData(e.target);
+    appUseAttom = formData.get('use_attom') === '1';
 
     try {
         const res  = await fetch('search.php', { method: 'POST', body: formData });

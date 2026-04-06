@@ -10,7 +10,8 @@ function getPublicRecords(
     string $state,
     string $postalCode,
     array  $geo,
-    string $fullAddress = ''
+    string $fullAddress = '',
+    bool   $skipAttom = false
 ): array {
     $records = [
         'mls_history'    => [],
@@ -34,17 +35,21 @@ function getPublicRecords(
         }
     }
 
-    // 3. ATTOM — read the key and call the API
-    // PHP define() constants are globally accessible — no 'global' keyword needed
-    $attomKey = defined('ATTOM_API_KEY') ? (string) ATTOM_API_KEY : '';
-
-    if ($attomKey === '') {
-        $records['attom'] = ['_error' => 'NO_KEY'];
+    // 3. ATTOM — read the key and call the API (skip if user opted out)
+    if ($skipAttom) {
+        $records['attom'] = null;
     } else {
-        $records['attom'] = fetchAttomData(
-            $streetNumber, $streetName, $city, $state, $postalCode,
-            $fullAddress, $attomKey
-        );
+        // PHP define() constants are globally accessible — no 'global' keyword needed
+        $attomKey = defined('ATTOM_API_KEY') ? (string) ATTOM_API_KEY : '';
+
+        if ($attomKey === '') {
+            $records['attom'] = ['_error' => 'NO_KEY'];
+        } else {
+            $records['attom'] = fetchAttomData(
+                $streetNumber, $streetName, $city, $state, $postalCode,
+                $fullAddress, $attomKey
+            );
+        }
     }
 
     // 4. County assessor links

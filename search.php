@@ -72,6 +72,7 @@ $radiusMiles = is_numeric($radiusRaw) ? (float)$radiusRaw : 0.125;
 if ($radiusMiles < 0.01) $radiusMiles = 0.125;  // safety: never search with zero radius
 $skip        = max(0, (int)($_POST['skip'] ?? 0));
 $isLoadMore  = $skip > 0;
+$useAttom    = ($_POST['use_attom'] ?? '0') === '1';
 
 // For public records we also extract parts from the typed address
 // so the records lookup can use them
@@ -148,7 +149,8 @@ try {
         $addrParts['state'] ?: ($geo['state']    ?? ''),
         $addrParts['zip']   ?: ($geo['postcode'] ?? ''),
         $geo,
-        $fullAddress   // pass the raw full address as ATTOM fallback
+        $fullAddress,   // pass the raw full address as ATTOM fallback
+        !$useAttom      // skip ATTOM when user didn't check the box
     );
 
     // 6. Scope label
