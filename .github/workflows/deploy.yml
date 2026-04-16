@@ -1,8 +1,9 @@
-name: Deploy to GoDaddy
+name: Deploy to DigitalOcean
 
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -10,19 +11,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Deploy via SFTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      - name: Deploy via rsync over SSH
+        uses: easingthemes/ssh-deploy@v5.1.0
         with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps
-          server-dir: public_html/ckmls/
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/CLAUDE.md
-            **/.DS_Store
-            **/deploy*.sh
-            **/.claude/**
-            **/.vscode/**
+          SSH_PRIVATE_KEY: ${{ secrets.DO_SSH_PRIVATE_KEY }}
+          REMOTE_HOST: 64.227.108.128
+          REMOTE_USER: root
+          TARGET: /var/www/html/ckmls/
+          EXCLUDE: >-
+            .git/,
+            .github/,
+            .gitignore,
+            .DS_Store,
+            .claude/,
+            .vscode/,
+            CLAUDE.md,
+            *.md,
+            .cpanel.yml,
+            .env,
+            node_modules/,
+            venv/,
+            __pycache__/
