@@ -683,6 +683,7 @@ foreach ($recipients as $r) {
 
     $mailResult = false;
     $method = 'mail()';
+    $sendDetail = '';   // captured failure reason for the log
 
     if ($useSmtp) {
         $method = 'SMTP';
@@ -701,7 +702,8 @@ foreach ($recipients as $r) {
         ]);
         $mailResult = $result['success'];
         if (!$mailResult) {
-            $errors[] = "SMTP to {$toEmail}: " . ($result['error'] ?? 'unknown');
+            $sendDetail = $result['error'] ?? 'unknown';
+            $errors[] = "SMTP to {$toEmail}: " . $sendDetail;
         }
     } else {
         // Encode as base64 to avoid RFC 2822 line-length violations
@@ -718,10 +720,13 @@ foreach ($recipients as $r) {
     // Save the full email for debugging — compare working vs non-working
     @file_put_contents(__DIR__ . '/data/last_email.html', $htmlEmail);
 
-    // Log every send attempt
-    @file_put_contents(__DIR__ . '/data/email_log.txt',
-        date('Y-m-d H:i:s') . " | {$method} | To: {$toEmail} | Subject: {$subject} | Size: {$emailSizeKB}KB | result=" . ($mailResult ? 'true' : 'false') . " | From: {$fromEmail}\n",
-        FILE_APPEND);
+    // Log every send attempt (includes the failure reason). Also mirror to the
+    // PHP error log so we still have a record if data/ isn't writable.
+    $logLine = date('Y-m-d H:i:s') . " | {$method} | To: {$toEmail} | Subject: {$subject}"
+        . " | Size: {$emailSizeKB}KB | result=" . ($mailResult ? 'true' : 'false')
+        . " | From: {$fromEmail}" . ($sendDetail !== '' ? " | error={$sendDetail}" : '');
+    @file_put_contents(__DIR__ . '/data/email_log.txt', $logLine . "\n", FILE_APPEND);
+    error_log("[CKMLS CMA] " . $logLine);
 
     if ($mailResult) {
         $sent[] = $toEmail;
