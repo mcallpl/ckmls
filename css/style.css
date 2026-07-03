@@ -447,6 +447,29 @@ input::placeholder { color: var(--mut2); }
 .c-meta strong { color: var(--text); }
 .c-rem { font-size: .8rem; color: var(--muted); line-height: 1.7; margin-top: 12px; border-left: 2px solid var(--bord2); padding-left: 12px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 
+/* Listing agent contact (internal search results only — never client-facing) */
+.c-agent {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px;
+    margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--bord);
+    font-size: .8rem;
+}
+.c-agent-label {
+    font-family: 'Syne', sans-serif; font-size: .58rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .1em; color: var(--muted);
+}
+.c-agent-name { color: var(--text); font-weight: 600; }
+.c-agent-phone {
+    margin-left: auto; display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: 999px;
+    background: rgba(91,127,255,.10); border: 1px solid rgba(91,127,255,.28);
+    color: var(--accent); font-weight: 700; font-size: .82rem;
+    text-decoration: none; white-space: nowrap;
+    transition: background .15s, border-color .15s, transform .1s;
+}
+.c-agent-phone:hover { background: rgba(91,127,255,.18); border-color: var(--accent); }
+.c-agent-phone:active { transform: scale(.97); }
+.c-agent-phone-ico { font-size: .9em; }
+
 /* ── 11b. STREET VIEW ──────────────────────────────────────── */
 #streetview-container {
     background: var(--surf); border: 1px solid var(--bord); border-radius: var(--radius);

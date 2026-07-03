@@ -48,9 +48,12 @@ function getSelectFields(): string {
         // Description
         'PublicRemarks',
 
-        // Agent / Office
+        // Agent / Office (internal use only — never shown to clients)
         'ListAgentFullName',
+        'ListAgentPreferredPhone',
+        'ListAgentMobilePhone',
         'ListOfficeName',
+        'ListOfficePhone',
 
         // HOA
         'AssociationFee',

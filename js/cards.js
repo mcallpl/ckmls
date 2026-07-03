@@ -161,6 +161,23 @@ function buildCard(prop, idx) {
         body.appendChild(rem);
     }
 
+    // Listing agent contact — INTERNAL ONLY. This block is shown in the
+    // search results for a quick call; it is never included in anything
+    // sent to a client (CMAs/shares carry Chip & Kim info only).
+    const agentPhone = prop.ListAgentPreferredPhone || prop.ListAgentMobilePhone || prop.ListOfficePhone || '';
+    if (prop.ListAgentFullName || agentPhone) {
+        const la = document.createElement('div');
+        la.className = 'c-agent';
+        const telDigits = agentPhone.replace(/[^0-9+]/g, '');
+        la.innerHTML = '<span class="c-agent-label">Listing Agent</span>'
+            + '<span class="c-agent-name">' + esc(prop.ListAgentFullName || '—') + '</span>'
+            + (agentPhone
+                ? '<a class="c-agent-phone" href="tel:' + esc(telDigits) + '" onclick="event.stopPropagation()">'
+                    + '<span class="c-agent-phone-ico">📞</span>' + esc(agentPhone) + '</a>'
+                : '');
+        body.appendChild(la);
+    }
+
     el.appendChild(body);
 
     el.addEventListener('click', () => {

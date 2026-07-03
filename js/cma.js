@@ -503,7 +503,8 @@ async function sendFinalCma() {
         LotSizeAcres: p.LotSizeAcres, GarageSpaces: p.GarageSpaces,
         AssociationFee: p.AssociationFee, AssociationFeeFrequency: p.AssociationFeeFrequency,
         PropertyType: p.PropertyType, PropertySubType: p.PropertySubType,
-        ListAgentFullName: p.ListAgentFullName, ListOfficeName: p.ListOfficeName,
+        // NOTE: listing agent/office intentionally omitted — client-facing
+        // output carries Chip & Kim info only, never any other agent.
         OriginalListPrice: p.OriginalListPrice, ListingContractDate: p.ListingContractDate,
     }));
 

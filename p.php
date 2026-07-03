@@ -66,8 +66,8 @@ $pType     = $prop['PropertySubType'] ?? $prop['PropertyType'] ?? '';
 $hoa       = $prop['AssociationFee'] ?? null;
 $hoaFreq   = $prop['AssociationFeeFrequency'] ?? '';
 $remarks   = $prop['PublicRemarks'] ?? '';
-$agent_name_listing = $prop['ListAgentFullName'] ?? '';
-$office    = $prop['ListOfficeName'] ?? '';
+// Listing agent/office intentionally NOT surfaced here — this is a
+// client-facing page and shows Chip & Kim contact info only.
 $photos    = $prop['_photos'] ?? [];
 $photo     = $prop['_photo'] ?? '';
 if (!$photos && $photo) $photos = [$photo];
