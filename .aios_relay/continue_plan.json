@@ -1,0 +1,26 @@
+{
+  "project_id": "ckmls",
+  "plan_version": "1.0.0",
+  "current_phase": "Not Started",
+  "current_work_order": "Awaiting first work order",
+  "next_allowed_action": "await_human_direction",
+  "next_handoff_title": "Initial project scoping",
+  "next_handoff_mode": "documentation_only",
+  "next_handoff_task": "Await Human Administrator direction to define first work order",
+  "next_handoff_success": "Handoff executed without errors",
+  "next_handoff_scope": "Governed execution within relay boundaries",
+  "next_handoff_notes": "Project profile bootstrapped by one-time genesis script (no prior AIOS Relay history existed for this project).",
+  "max_steps": 1,
+  "stop_conditions": [
+    "Work incomplete",
+    "Catastrophic risk detected",
+    "Authorization revoked",
+    "Evidence missing"
+  ],
+  "requires_human_for": [
+    "next_phase_authorization",
+    "production_deployment",
+    "credential_access",
+    "live_external_communication"
+  ]
+}

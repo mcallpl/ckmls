@@ -1,0 +1,26 @@
+{
+  "project_id": "ckmls",
+  "project_name": "Ckmls",
+  "profile_version": "1.0.0",
+  "governance_model": "AIOS v1",
+  "current_phase": "Not Started",
+  "current_work_order": "Awaiting first work order",
+  "locked_status": "unlocked",
+  "allowed_modes": [
+    "documentation_only",
+    "read_only_inspection",
+    "non_destructive_validation"
+  ],
+  "prohibited_actions": [
+    "scoped_implementation",
+    "database_modification",
+    "credential_access",
+    "production_deployment"
+  ],
+  "catastrophic_threshold": "Any action affecting business data, credentials, or production systems",
+  "evidence_required": "Test results, validation logs, governance review",
+  "completion_condition": "Human Administrator confirms work completed and approves next phase",
+  "governor_role": "Interpret human direction, create work orders, review evidence, guide Claude Executor",
+  "executor_role": "Execute work orders, produce evidence, respect governance boundaries, report findings",
+  "human_role": "Set strategic direction, approve catastrophic actions, review governance decisions, authorize phase transitions"
+}
