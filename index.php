@@ -7,7 +7,7 @@ header('Cache-Control: no-cache, must-revalidate');
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>MLS Property Search</title>
     <link rel="stylesheet" href="css/style.css?v=<?=$cacheBust?>">
     <!-- premium link + icon assets -->
@@ -29,6 +29,29 @@ header('Cache-Control: no-cache, must-revalidate');
     <meta name="twitter:image" content="/public/og-image.png">
     </head>
 <body>
+
+<!-- ── ZOOM LOCK (native-app feel) ──────────────────────────
+     iOS Safari ignores user-scalable=no, so block pinch + double-tap
+     zoom here. The map (#map) is excluded so its own pinch-zoom works. -->
+<script>
+(function(){
+  function onMap(t){ return t && t.closest && t.closest('#map'); }
+  // Block pinch-zoom of the page (iOS gesture events)
+  ['gesturestart','gesturechange','gestureend'].forEach(function(ev){
+    document.addEventListener(ev, function(e){
+      if (onMap(e.target)) return;
+      e.preventDefault();
+    }, { passive:false });
+  });
+  // Block double-tap-to-zoom (two quick taps)
+  var lastTap = 0;
+  document.addEventListener('touchend', function(e){
+    var now = Date.now();
+    if (now - lastTap <= 300 && !onMap(e.target)) e.preventDefault();
+    lastTap = now;
+  }, { passive:false });
+})();
+</script>
 
 <!-- ── THEME TOGGLE ────────────────────────────────────── -->
 <button class="theme-toggle" id="themeToggle" title="Switch theme">🌙</button>

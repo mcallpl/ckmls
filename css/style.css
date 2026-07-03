@@ -84,6 +84,7 @@ body {
     max-width: 100%;
     overflow-x: hidden;              /* app-wide horizontal lock */
     overscroll-behavior-x: none;     /* kill left/right rubber-band bounce */
+    touch-action: manipulation;      /* no double-tap zoom; snappier taps */
 }
 /* Media never forces the page wider than the viewport. */
 img, svg, video, canvas, iframe { max-width: 100%; }

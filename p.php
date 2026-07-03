@@ -120,7 +120,7 @@ function fmtD($s) {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title><?= htmlspecialchars($addr) ?> — Property Details</title>
     <meta name="robots" content="noindex, nofollow">
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
@@ -228,6 +228,22 @@ function fmtD($s) {
     </style>
 </head>
 <body>
+
+<!-- Zoom lock (native-app feel): iOS ignores user-scalable=no, so block
+     pinch + double-tap zoom here. -->
+<script>
+(function(){
+  ['gesturestart','gesturechange','gestureend'].forEach(function(ev){
+    document.addEventListener(ev, function(e){ e.preventDefault(); }, { passive:false });
+  });
+  var lastTap = 0;
+  document.addEventListener('touchend', function(e){
+    var now = Date.now();
+    if (now - lastTap <= 300) e.preventDefault();
+    lastTap = now;
+  }, { passive:false });
+})();
+</script>
 
 <div class="container" style="padding-top:32px;">
 
