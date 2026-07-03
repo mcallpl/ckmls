@@ -5,6 +5,11 @@ ini_set('display_errors', 0);
 error_reporting(E_ALL);
 
 set_error_handler(function($severity, $message, $file, $line) {
+    // Respect @-suppression and error_reporting(): a warning silenced with @
+    // (e.g. a non-fatal cache write) must not abort the request or show a banner.
+    if (!(error_reporting() & $severity)) {
+        return false;
+    }
     $f = basename($file);
     header('Content-Type: application/json');
     echo json_encode(['success' => false, 'error' => "PHP Error in {$f} line {$line}: {$message}"]);

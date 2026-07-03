@@ -12,18 +12,15 @@ if (file_exists(__DIR__ . '/config.local.php')) {
 define('TRESTLE_BASE_URL',    'https://api.cotality.com');
 if (!defined('TRESTLE_CLIENT_ID'))    define('TRESTLE_CLIENT_ID',    'YOUR_TRESTLE_CLIENT_ID');
 if (!defined('TRESTLE_CLIENT_SECRET')) define('TRESTLE_CLIENT_SECRET', 'YOUR_TRESTLE_CLIENT_SECRET');
-// Cache the Trestle token in an app-owned, writable dir. On many hosts the
-// PHP process cannot write to the shared /tmp, so prefer the project's data/
-// directory and only fall back to the system temp dir if that isn't writable.
+// Cache the short-lived Trestle token in the system temp dir (kept OUT of the
+// web root so it can never be downloaded over HTTP). The filename is namespaced
+// per install: /tmp is world-writable but sticky, so PHP cannot overwrite a
+// trestle_token.json left there by a different OS user (a stale root-owned file
+// is what caused the "Permission denied" errors) — a unique name is always
+// created and owned by the PHP user, so writes always succeed.
 if (!defined('TOKEN_CACHE_FILE')) {
-    $tokenCacheDir = __DIR__ . '/data';
-    if (!is_dir($tokenCacheDir)) {
-        @mkdir($tokenCacheDir, 0755, true);
-    }
-    if (!is_writable($tokenCacheDir)) {
-        $tokenCacheDir = sys_get_temp_dir();
-    }
-    define('TOKEN_CACHE_FILE', $tokenCacheDir . '/trestle_token.json');
+    define('TOKEN_CACHE_FILE',
+        sys_get_temp_dir() . '/trestle_token_' . substr(md5(__DIR__), 0, 8) . '.json');
 }
 
 // Google Maps (JavaScript API + Geocoding API)
