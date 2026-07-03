@@ -31,7 +31,10 @@ function getAccessToken(): string {
     }
 
     $data = json_decode($response, true);
-    file_put_contents(TOKEN_CACHE_FILE, json_encode([
+
+    // Cache the token, but never let a write failure break the request —
+    // the token is valid regardless of whether we manage to cache it.
+    @file_put_contents(TOKEN_CACHE_FILE, json_encode([
         'access_token' => $data['access_token'],
         'expires_at'   => time() + $data['expires_in'],
     ]));

@@ -12,7 +12,19 @@ if (file_exists(__DIR__ . '/config.local.php')) {
 define('TRESTLE_BASE_URL',    'https://api.cotality.com');
 if (!defined('TRESTLE_CLIENT_ID'))    define('TRESTLE_CLIENT_ID',    'YOUR_TRESTLE_CLIENT_ID');
 if (!defined('TRESTLE_CLIENT_SECRET')) define('TRESTLE_CLIENT_SECRET', 'YOUR_TRESTLE_CLIENT_SECRET');
-define('TOKEN_CACHE_FILE',    sys_get_temp_dir() . '/trestle_token.json');
+// Cache the Trestle token in an app-owned, writable dir. On many hosts the
+// PHP process cannot write to the shared /tmp, so prefer the project's data/
+// directory and only fall back to the system temp dir if that isn't writable.
+if (!defined('TOKEN_CACHE_FILE')) {
+    $tokenCacheDir = __DIR__ . '/data';
+    if (!is_dir($tokenCacheDir)) {
+        @mkdir($tokenCacheDir, 0755, true);
+    }
+    if (!is_writable($tokenCacheDir)) {
+        $tokenCacheDir = sys_get_temp_dir();
+    }
+    define('TOKEN_CACHE_FILE', $tokenCacheDir . '/trestle_token.json');
+}
 
 // Google Maps (JavaScript API + Geocoding API)
 if (!defined('GOOGLE_MAPS_API_KEY')) define('GOOGLE_MAPS_API_KEY', 'YOUR_GOOGLE_MAPS_API_KEY');
