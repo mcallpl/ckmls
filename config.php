@@ -35,6 +35,12 @@ if (!defined('ATTOM_API_KEY')) define('ATTOM_API_KEY', '');
 // Get your key at: https://platform.openai.com/api-keys
 if (!defined('OPENAI_API_KEY')) define('OPENAI_API_KEY', '');
 
+// ── SendGrid (CMA email delivery) ──────────────────────────
+// Real key comes from the vault via config.local.php.
+if (!defined('SENDGRID_API_KEY')) define('SENDGRID_API_KEY', '');
+// Every CMA is silently BCC-copied to the agent for their records.
+if (!defined('AGENT_COPY_EMAIL')) define('AGENT_COPY_EMAIL', 'mcallpl@gmail.com');
+
 // ── Agent Profile (used in CMA emails) ──────────────────────
 // Fill these in — they drive everything in the Quick CMA email.
 // Nothing is hardcoded anywhere else in the app.

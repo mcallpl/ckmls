@@ -667,14 +667,14 @@ $subject = $emailSubject ?: "Your CMA — {$subjectAddr}";
 $emailSize = strlen($htmlEmail);
 $emailSizeKB = round($emailSize / 1024, 1);
 
-// Send from the agent's real email
-require_once __DIR__ . '/lib/smtp.php';
+// CMA email goes out exclusively through SendGrid (no external SMTP relay).
+require_once __DIR__ . '/lib/sendgrid.php';
 
 $fromEmail = $sigEmail ?: (defined('AGENT_EMAIL') ? AGENT_EMAIL : '');
 $fromName  = $sigName  ?: (defined('AGENT_NAME')  ? AGENT_NAME  : '');
+$agentCopy = defined('AGENT_COPY_EMAIL') ? AGENT_COPY_EMAIL : '';
 
-// Use SMTP when configured (reliable, bypasses content filters)
-$useSmtp = defined('SMTP_HOST') && SMTP_HOST && defined('SMTP_USER') && SMTP_USER && defined('SMTP_PASS') && SMTP_PASS;
+$useSendGrid = defined('SENDGRID_API_KEY') && SENDGRID_API_KEY;
 
 foreach ($recipients as $r) {
     $toEmail = filter_var(trim($r['email'] ?? ''), FILTER_VALIDATE_EMAIL);
@@ -685,13 +685,10 @@ foreach ($recipients as $r) {
     $method = 'mail()';
     $sendDetail = '';   // captured failure reason for the log
 
-    if ($useSmtp) {
-        $method = 'SMTP';
-        $result = smtp_send([
-            'host'     => SMTP_HOST,
-            'port'     => defined('SMTP_PORT') ? (int)SMTP_PORT : 465,
-            'user'     => SMTP_USER,
-            'pass'     => SMTP_PASS,
+    if ($useSendGrid) {
+        $method = 'SendGrid';
+        $result = sendgrid_send([
+            'apiKey'   => SENDGRID_API_KEY,
             'from'     => $fromEmail,
             'fromName' => $fromName,
             'to'       => $toEmail,
@@ -699,11 +696,12 @@ foreach ($recipients as $r) {
             'subject'  => $subject,
             'html'     => $htmlEmail,
             'replyTo'  => $fromEmail,
+            'bcc'      => $agentCopy,   // silent copy to the agent
         ]);
         $mailResult = $result['success'];
         if (!$mailResult) {
             $sendDetail = $result['error'] ?? 'unknown';
-            $errors[] = "SMTP to {$toEmail}: " . $sendDetail;
+            $errors[] = "SendGrid to {$toEmail}: " . $sendDetail;
         }
     } else {
         // Encode as base64 to avoid RFC 2822 line-length violations
