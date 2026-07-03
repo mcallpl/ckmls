@@ -66,12 +66,28 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
+html {
+    scroll-behavior: smooth;
+    /* Lock the app to the device width: no horizontal pan/wobble on mobile. */
+    overflow-x: hidden;
+    width: 100%;
+    /* iOS: never auto-inflate text (which reflows content wider than the screen). */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
 body {
     font-family: 'DM Sans', sans-serif;
     background: var(--bg); color: var(--text);
     min-height: 100vh; padding-bottom: 80px;
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;              /* app-wide horizontal lock */
+    overscroll-behavior-x: none;     /* kill left/right rubber-band bounce */
 }
+/* Media never forces the page wider than the viewport. */
+img, svg, video, canvas, iframe { max-width: 100%; }
+img { height: auto; }
 
 /* ── 2. LAYOUT & HEADER ─────────────────────────────────── */
 .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
@@ -770,4 +786,13 @@ input::placeholder { color: var(--mut2); }
     .cma-modal-header, .cma-modal-body, .cma-modal-footer { padding-left: 20px; padding-right: 20px; }
     .cma-field-row { flex-direction: column; }
     .pc-prev, .pc-next { width: 36px; font-size: 1.6rem; }
+    /* Wide data table scrolls inside its own card instead of being clipped
+       (or pushing the page sideways). */
+    .history-table {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        white-space: nowrap;
+    }
 }

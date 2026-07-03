@@ -7,10 +7,27 @@ header('Cache-Control: no-cache, must-revalidate');
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>MLS Property Search</title>
     <link rel="stylesheet" href="css/style.css?v=<?=$cacheBust?>">
-</head>
+    <!-- premium link + icon assets -->
+    <link rel="icon" href="/public/favicon.ico" sizes="any">
+    <link rel="icon" type="image/svg+xml" href="/public/favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="/public/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/public/favicon-16.png">
+    <link rel="apple-touch-icon" href="/public/apple-touch-icon.png">
+    <meta name="theme-color" content="#0A57A0">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="ckMLS">
+    <meta property="og:description" content="Instant property search that just works.">
+    <meta property="og:image" content="/public/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="ckMLS">
+    <meta name="twitter:description" content="Instant property search that just works.">
+    <meta name="twitter:image" content="/public/og-image.png">
+    </head>
 <body>
 
 <!-- ── THEME TOGGLE ────────────────────────────────────── -->
