@@ -1,3 +1,3 @@
 - [user_chip.md](user_chip.md) — Chip is a real estate agent building MLS search tool; values accuracy and polished UX
-- [feedback_incognito_cache.md](feedback_incognito_cache.md) — GoDaddy LiteSpeed caches HTML; always test in incognito, use inline scripts as fallback
+- [feedback_incognito_cache.md](feedback_incognito_cache.md) — HTML page cache historically hid JS updates (unconfirmed on DigitalOcean); test in incognito, use inline scripts as fallback
 - [feedback_radius_drag.md](feedback_radius_drag.md) — Draggable radius circle behavior is perfect, never change it

@@ -1,4 +1,4 @@
-# Disable LiteSpeed Cache (GoDaddy uses LiteSpeed)
+# Disable LiteSpeed Cache (no-op unless a LiteSpeed server is present)
 <IfModule LiteSpeed>
     CacheDisable public
     CacheDisable private
