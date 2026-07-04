@@ -141,11 +141,14 @@ if (!function_exists('loadCredentials')) {
     }
 }
 if (!function_exists('saveCredentials')) {
+    // Returns true on success, false if the store could not be written (e.g. the
+    // sec/ dir isn't writable by the PHP-FPM user) so callers can surface a real
+    // error instead of a silent, fake "success".
     function saveCredentials($data) {
         $dir = dirname(CREDENTIALS_FILE);
         if (!is_dir($dir)) {
-            mkdir($dir, 0755, true);
+            @mkdir($dir, 0775, true);
         }
-        file_put_contents(CREDENTIALS_FILE, json_encode($data, JSON_PRETTY_PRINT));
+        return @file_put_contents(CREDENTIALS_FILE, json_encode($data, JSON_PRETTY_PRINT)) !== false;
     }
 }

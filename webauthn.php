@@ -268,7 +268,9 @@ function webauthn_register_verify($data) {
         'signCount' => 0,
         'createdAt' => date('Y-m-d H:i:s')
     ];
-    saveCredentials($creds);
+    if (!saveCredentials($creds)) {
+        return ['error' => 'Could not save the passkey on the server (credential store not writable)'];
+    }
     unset($_SESSION['webauthn_challenge']);
 
     return ['success' => true];
