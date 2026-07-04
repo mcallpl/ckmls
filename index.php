@@ -1,5 +1,9 @@
 <?php
 require_once __DIR__ . '/config.php';
+if (!isAuthenticated()) {          // gate the app behind password / Face ID
+    header('Location: login.php');
+    exit;
+}
 $cacheBust = time(); // force fresh JS on every page load — no caching
 header('Cache-Control: no-cache, must-revalidate');
 ?>
@@ -29,6 +33,19 @@ header('Cache-Control: no-cache, must-revalidate');
     <meta name="twitter:image" content="/public/og-image.png">
     </head>
 <body>
+
+<!-- ── SESSION GUARD ── if any API call 401s (session expired), go to login -->
+<script>
+(function(){
+  const _fetch = window.fetch;
+  window.fetch = function(){
+    return _fetch.apply(this, arguments).then(function(r){
+      if (r.status === 401) { window.location.href = 'login.php'; }
+      return r;
+    });
+  };
+})();
+</script>
 
 <!-- ── ZOOM LOCK (native-app feel) ──────────────────────────
      iOS Safari ignores user-scalable=no, so block pinch + double-tap

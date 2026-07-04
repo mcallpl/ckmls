@@ -20,6 +20,11 @@ try {
 
 require_once __DIR__ . '/config.php';
 
+if (!isAuthenticated()) {          // block unauthenticated (and un-billed) access
+    http_response_code(401);
+    echo json_encode(['success'=>false,'error'=>'Not authenticated']); exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['success'=>false,'error'=>'Method not allowed']); exit;
 }

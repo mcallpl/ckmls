@@ -14,3 +14,6 @@ deploy*.sh
 .vscode/
 data/*.json
 data/photos/
+
+# Passkey credential store (single-admin password hash + passkeys)
+sec/credentials.json

@@ -65,3 +65,87 @@ define('AGENT_BLOG',        'http://www.firstteam.com/blog/');
 // Brokerage
 define('BROKERAGE_NAME',    'First Team Real Estate');           // e.g. First Team Real Estate
 define('BROKERAGE_LOGO_URL','http://agentphoto.firstteam.com/sigblock/logos/ft-lpi-eSig.png');           // Full URL to brokerage logo
+
+// ============================================================
+//  AUTHENTICATION (password + Touch ID / Face ID passkeys)
+//  Ported from the pws/MQI Records implementation. Gates the app
+//  and the paid API endpoints (search.php, cma.php). p.php and
+//  photo.php stay public — they serve CMA email recipients.
+// ============================================================
+
+// Admin password: from the vault ($vault_ckmls_app_password), falling back to
+// the shared pws password, then a hardcoded default. Only used to seed
+// sec/credentials.json on first run; after that, the stored hash is the source.
+if (!defined('APP_PASSWORD')) {
+    $ckmls_app_pw = $vault_ckmls_app_password
+        ?? ($vault_pws_app_password ?? (getenv('APP_PASSWORD') ?: 'amazing'));
+    define('APP_PASSWORD', $ckmls_app_pw);
+}
+
+define('SESSION_TIMEOUT', 300); // 5 minutes of inactivity
+if (!defined('CREDENTIALS_FILE')) {
+    define('CREDENTIALS_FILE', __DIR__ . '/sec/credentials.json');
+}
+
+// Session setup (safe on public endpoints too — starts before any body output)
+if (session_status() === PHP_SESSION_NONE) {
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path' => '/',
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
+    session_start();
+}
+
+// Authentication check with idle timeout
+if (!function_exists('isAuthenticated')) {
+    function isAuthenticated() {
+        if (empty($_SESSION['authenticated']) || $_SESSION['authenticated'] !== true) {
+            return false;
+        }
+        if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) > SESSION_TIMEOUT) {
+            session_unset();
+            session_destroy();
+            return false;
+        }
+        $_SESSION['last_activity'] = time();
+        return true;
+    }
+}
+
+// Base64url encode/decode for WebAuthn
+if (!function_exists('base64url_encode')) {
+    function base64url_encode($data) {
+        return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+    }
+}
+if (!function_exists('base64url_decode')) {
+    function base64url_decode($data) {
+        return base64_decode(strtr($data, '-_', '+/') . str_repeat('=', (4 - strlen($data) % 4) % 4));
+    }
+}
+
+// Credential storage (single-admin: password hash + registered passkeys)
+if (!function_exists('loadCredentials')) {
+    function loadCredentials() {
+        if (!file_exists(CREDENTIALS_FILE)) {
+            $default = [
+                'credentials' => [],
+                'password_hash' => password_hash(APP_PASSWORD, PASSWORD_DEFAULT),
+            ];
+            saveCredentials($default);
+            return $default;
+        }
+        return json_decode(file_get_contents(CREDENTIALS_FILE), true);
+    }
+}
+if (!function_exists('saveCredentials')) {
+    function saveCredentials($data) {
+        $dir = dirname(CREDENTIALS_FILE);
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+        file_put_contents(CREDENTIALS_FILE, json_encode($data, JSON_PRETTY_PRINT));
+    }
+}

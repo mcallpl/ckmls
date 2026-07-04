@@ -30,6 +30,12 @@ header('Content-Type: application/json');
 header('X-Content-Type-Options: nosniff');
 
 require_once __DIR__ . '/config.php';
+if (!isAuthenticated()) {          // block unauthenticated (and un-billed) access
+    http_response_code(401);
+    header('Content-Type: application/json');
+    echo json_encode(['success' => false, 'error' => 'Not authenticated']);
+    exit;
+}
 require_once __DIR__ . '/lib/auth.php';
 require_once __DIR__ . '/lib/api.php';
 require_once __DIR__ . '/lib/geocode.php';

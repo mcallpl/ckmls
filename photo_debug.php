@@ -1,6 +1,12 @@
 <?php
 // Photo proxy debug — DELETE after use
 require_once __DIR__ . '/config.php';
+if (!isAuthenticated()) {          // debug endpoint — never expose publicly
+    http_response_code(401);
+    header('Content-Type: application/json');
+    echo json_encode(['error' => 'Not authenticated']);
+    exit;
+}
 require_once __DIR__ . '/lib/auth.php';
 
 header('Content-Type: application/json');
