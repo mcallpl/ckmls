@@ -82,15 +82,22 @@ if (!defined('APP_PASSWORD')) {
     define('APP_PASSWORD', $ckmls_app_pw);
 }
 
-define('SESSION_TIMEOUT', 1800); // 30 minutes idle (5 min forced constant re-auth)
+define('SESSION_TIMEOUT', 31536000); // 1 year — persistent login on trusted devices
 if (!defined('CREDENTIALS_FILE')) {
     define('CREDENTIALS_FILE', __DIR__ . '/sec/credentials.json');
 }
 
 // Session setup (safe on public endpoints too — starts before any body output)
 if (session_status() === PHP_SESSION_NONE) {
+    // Persistent sessions: keep them out of the distro session dir so Debian's
+    // session GC cron cannot purge them before the cookie expires.
+    $appSessDir = '/var/lib/php/app-sessions/ckmls';
+    if (is_dir($appSessDir) && is_writable($appSessDir)) {
+        ini_set('session.save_path', $appSessDir);
+        ini_set('session.gc_maxlifetime', '31536000');
+    }
     session_set_cookie_params([
-        'lifetime' => 0,
+        'lifetime' => 31536000,
         'path' => '/',
         'httponly' => true,
         'samesite' => 'Lax',
