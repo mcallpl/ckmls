@@ -31,7 +31,9 @@ switch ($action) {
         $password = $input['password'] ?? '';
         $creds = loadCredentials();
         if (password_verify($password, $creds['password_hash'])) {
-            session_regenerate_id(true); // prevent session fixation
+            // No session_regenerate_id() mid-login: iOS Safari/PWA can drop a cookie
+            // swapped inside a fetch() response, causing a login loop. The id is
+            // regenerated on the login PAGE load instead (top-level nav = reliable).
             $_SESSION['authenticated'] = true;
             $_SESSION['last_activity'] = time();
             echo json_encode(['success' => true]);

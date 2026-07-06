@@ -82,7 +82,7 @@ if (!defined('APP_PASSWORD')) {
     define('APP_PASSWORD', $ckmls_app_pw);
 }
 
-define('SESSION_TIMEOUT', 300); // 5 minutes of inactivity
+define('SESSION_TIMEOUT', 1800); // 30 minutes idle (5 min forced constant re-auth)
 if (!defined('CREDENTIALS_FILE')) {
     define('CREDENTIALS_FILE', __DIR__ . '/sec/credentials.json');
 }

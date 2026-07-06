@@ -348,7 +348,9 @@ function webauthn_login_verify($data) {
     saveCredentials($creds);
     unset($_SESSION['webauthn_challenge']);
 
-    session_regenerate_id(true); // prevent session fixation
+    // No session_regenerate_id() here — a cookie swapped inside a fetch() response
+    // is unreliably applied by iOS Safari/PWA (caused a login loop). The session id
+    // is freshly issued on the login page load instead.
     $_SESSION['authenticated'] = true;
     $_SESSION['last_activity'] = time();
 

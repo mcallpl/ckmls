@@ -4,6 +4,10 @@ if (isAuthenticated()) {
     header('Location: index.php');
     exit;
 }
+// Fresh session id on login-page render (top-level nav = cookie applied reliably,
+// even on iOS Safari/PWA). Provides fixation protection without the mid-login
+// cookie swap that looped iOS logins.
+session_regenerate_id(true);
 ?>
 <!DOCTYPE html>
 <html lang="en">
