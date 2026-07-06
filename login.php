@@ -1,8 +1,14 @@
 <?php
 require_once __DIR__ . '/config.php';
+// ?setup=1 lets an already-logged-in user reach the Face ID setup screen directly
+// (otherwise an active session skips login — and with it, the only path to setup).
+$forceSetup = false;
 if (isAuthenticated()) {
-    header('Location: index.php');
-    exit;
+    if (empty($_GET['setup'])) {
+        header('Location: index.php');
+        exit;
+    }
+    $forceSetup = true;
 }
 // Fresh session id on login-page render (top-level nav = cookie applied reliably,
 // even on iOS Safari/PWA). Provides fixation protection without the mid-login
@@ -377,7 +383,13 @@ function bufferToBase64url(buffer) {
     return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 }
 
+const FORCE_SETUP = <?= $forceSetup ? 'true' : 'false' ?>;
+
 async function init() {
+    if (FORCE_SETUP) {           // already logged in, arrived via ?setup=1
+        showScreen('setup');
+        return;
+    }
     try {
         const res = await fetch('api.php?action=check_setup');
         const data = await res.json();
